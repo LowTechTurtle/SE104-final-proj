@@ -1,0 +1,146 @@
+////////////////////////////////////////////////////////////
+// Business-only DBML (Django/auth tables removed)
+////////////////////////////////////////////////////////////
+
+Table Customers {
+  id bigint [pk, increment]
+  first_name varchar(256) [not null]
+  last_name varchar(256)
+  address text
+  email varchar(256)
+  phone varchar(15)
+  loyalty_points integer [not null]
+}
+
+Table auth_user {
+  id bigint [pk, increment]
+  password varchar(128) [not null]
+  is_superuser boolean [not null]
+  username varchar(150) [not null, unique]
+  first_name varchar(150) [not null]
+  last_name varchar(150) [not null]
+  email varchar(254) [not null]
+  is_active boolean [not null]
+}
+
+
+Table accounts_vendor {
+  id bigint [pk, increment]
+  name varchar(50) [not null]
+  slug varchar(50) [not null, unique]
+  phone_number varchar(15)
+  address varchar(50)
+}
+
+Table accounts_profile {
+  id bigint [pk, increment]
+  slug varchar(50) [not null, unique]
+  profile_picture varchar(100) [not null]
+  telephone varchar(128)
+  email varchar(150)
+  first_name varchar(30) [not null]
+  last_name varchar(30) [not null]
+  status varchar(12) [not null]
+  role varchar(12)
+  user_id bigint [not null, unique] // external auth user id — FK removed
+}
+
+Table bill {
+  id bigint [pk, increment]
+  slug varchar(50) [not null, unique]
+  purchase_id bigint [not null]
+  payment_details varchar(255) [not null]
+  status boolean [not null]
+}
+
+Table store_category {
+  id bigint [pk, increment]
+  name varchar(50) [not null]
+  slug varchar(50) [not null, unique]
+}
+
+Table store_item {
+  id bigint [pk, increment]
+  slug varchar(50) [not null, unique]
+  name varchar(50) [not null]
+  description text [not null]
+  quantity integer [not null]
+  price float [not null]
+  category_id bigint [not null] // FK -> store_category.id
+  vendor_id bigint // FK -> accounts_vendor.id
+}
+
+Table store_delivery {
+  id bigint [pk, increment]
+  location varchar(20)
+  is_delivered boolean [not null]
+  item_id bigint // FK -> store_item.id
+}
+
+Table invoice {
+  id bigint [pk, increment]
+  slug varchar(50) [not null, unique]
+  date datetime [not null]
+  customer_name varchar(30) [not null]
+  contact_number varchar(13) [not null]
+  price_per_item float [not null]
+  quantity float [not null]
+  shipping float [not null]
+  total float [not null]
+  grand_total float [not null]
+  item_id bigint [not null] // FK -> store_item.id
+  delivery integer [not null]
+}
+
+Table sales {
+  id bigint [pk, increment]
+  date_added datetime [not null]
+  sub_total decimal [not null]
+  grand_total decimal [not null]
+  tax_amount decimal [not null]
+  tax_percentage float [not null]
+  amount_paid decimal [not null]
+  amount_change decimal [not null]
+  customer bigint [not null] // FK -> Customers.id
+}
+
+Table sale_details {
+  id bigint [pk, increment]
+  price decimal [not null]
+  quantity integer [not null] // unsigned in original (CHECK >= 0)
+  total_detail decimal [not null]
+  item bigint [not null] // FK -> store_item.id
+  sale bigint [not null] // FK -> sales.id
+}
+
+Table purchase {
+  id bigint [pk, increment]
+  slug varchar(50) [not null, unique]
+  description text
+  order_date datetime [not null]
+  delivery_date datetime
+  delivery_status varchar(1) [not null]
+  price decimal [not null]
+  total_value decimal [not null]
+  item_id bigint [not null] // FK -> store_item.id
+  vendor_id bigint [not null] // FK -> accounts_vendor.id
+  quantity integer [not null] // unsigned in original (CHECK >= 0)
+}
+
+////////////////////////////////////////////////////////////
+// Business relationships
+////////////////////////////////////////////////////////////
+Ref: bill.purchase_id > purchase.id
+Ref: store_item.category_id > store_category.id
+Ref: store_item.vendor_id > accounts_vendor.id
+Ref: store_delivery.item_id > store_item.id
+Ref: invoice.item_id > store_item.id
+Ref: sales.customer > Customers.id
+Ref: sale_details.item > store_item.id
+Ref: sale_details.sale > sales.id
+Ref: purchase.item_id > store_item.id
+Ref: purchase.vendor_id > accounts_vendor.id
+Ref: accounts_profile.user_id > auth_user.id
+Ref: invoice.delivery > store_delivery.id
+
+
