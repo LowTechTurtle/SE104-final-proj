@@ -34,7 +34,7 @@
     {% endcomment %}
 
     <div class="mb-3">
-        <a class="float-end btn btn-success btn-sm" href="{% querystring '_export'='xlsx' %}">
+        <a class="float-end btn btn-success btn-sm" href="{% url 'export_bills' %}">
             <i class="fa-solid fa-download me-2"></i> Export to Excel
         </a>
     </div>
@@ -58,29 +58,67 @@
                 {% for bill in bills %}
                 <tr>
                     <th scope="row">{{ bill.id }}</th>
-                    <td>{{ bill.institution_name }}</td>
-                    <td>{{ bill.description }}</td>
-                    <td>{{ bill.phone_number }}</td>
-                    <td>{{ bill.email }}</td>
+                    
+                    <!-- Cột Name (Tên nhà cung cấp) -->
+                    <!-- Logic: Bill -> Purchase -> Vendor -> name -->
+                    <td>
+                        {% if bill.purchase.vendor %}
+                            {{ bill.purchase.vendor.name }}
+                        {% else %}
+                            <span class="text-muted">N/A</span>
+                        {% endif %}
+                    </td>
+                    
+                    <!-- Cột Description (Giữ nguyên hoặc lấy từ Purchase) -->
+                    <td>
+                         <!-- Nếu bill không có description, thử lấy từ purchase -->
+                        {{ bill.purchase.description|default:"-" }}
+                    </td>
+                    
+                    <!-- Cột Contact Number (SĐT Vendor) -->
+                    <td>
+                        {% if bill.purchase.vendor %}
+                            {{ bill.purchase.vendor.phone }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    
+                    <!-- Cột Email (Email Vendor) -->
+                    <td>
+                        {% if bill.purchase.vendor %}
+                            {{ bill.purchase.vendor.email }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    
+                    <!-- Payment Details (Lấy từ Bill) -->
                     <td>{{ bill.payment_details }}</td>
-                    <td>{{ bill.amount }}</td>
+                    
+                    <!-- Amount (Tổng tiền nhập hàng) -->
+                    <td>{{ bill.purchase.total_value }}</td>
+                    
+                    <!-- Status -->
                     <td>
                         {% if bill.status %}
-                            <span class="badge badge-pill bg-soft-success text-success me-2">
+                            <span class="badge badge-pill bg-success text-white">
                                 Paid
                             </span>
                         {% else %}
-                            <span class="badge badge-pill bg-soft-danger text-danger me-2">
+                            <span class="badge badge-pill bg-danger text-white">
                                 Pending
                             </span>
                         {% endif %}
                     </td>
+                    
+                    <!-- Actions -->
                     <td>
-                        <a class="text-info" href="{% url 'bill_update' bill.slug %}">
-                            <i class="fa-solid fa-pen"></i>
+                        <a class="btn btn-outline-info btn-sm" href="{% url 'bill_update' bill.slug %}">
+                            <i class="fa-solid fa-pen"></i> Edit
                         </a>
-                        <a class="text-danger float-end" href="{% url 'bill_delete' bill.pk %}">
-                            <i class="fa-solid fa-trash"></i>
+                        <a class="btn btn-outline-danger btn-sm" href="{% url 'bill_delete' bill.pk %}">
+                            <i class="fa-solid fa-trash"></i> Delete
                         </a>
                     </td>
                 </tr>

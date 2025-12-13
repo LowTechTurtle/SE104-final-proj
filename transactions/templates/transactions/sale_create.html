@@ -75,18 +75,24 @@
                     </div>
                     <div class="card-body">
                         {% csrf_token %}
+                        
+                        <!-- PHẦN KHÁCH HÀNG (Đã sửa ID và Logic) -->
                         <div class="mb-3">
                             <label for="customer" class="form-label">Customer</label>
-                            <select name="customer" class="form-select" id="customer" aria-label="Customer" required>
-                                <option value="" selected disabled hidden>Select the customer</option>
+                            <!-- Chú ý: id="customer" trùng với logic JS bên dưới -->
+                            <select name="customer" class="form-select" id="customer" aria-label="Customer" style="width: 100%">
+                                <option value="">--- Khách lẻ (Không lưu thông tin) ---</option>
+                                <!-- Vòng lặp này giữ lại để hiển thị danh sách ban đầu nếu cần -->
                                 {% for customer in customers %}
-                                <option value="{{ customer.value }}">{{ customer.label }}</option>
+                                    <option value="{{ customer.value }}">{{ customer.label }}</option>
                                 {% endfor %}
                             </select>
                         </div>
+
+                        <!-- Các phần nhập tiền giữ nguyên -->
                         <div class="mb-3">
                             <label for="sub_total" class="form-label">Subtotal</label>
-                            <input name="sub_total" type="number" class="form-control" id="sub_total" aria-label="Subtotal" required>
+                            <input name="sub_total" type="number" class="form-control" id="sub_total" aria-label="Subtotal" required readonly>
                         </div>
                         <div class="mb-3">
                             <label for="tax_percentage" class="form-label">Tax Inclusive (%)</label>
@@ -94,16 +100,17 @@
                         </div>
                         <div class="mb-3">
                             <label for="tax_amount" class="form-label">Tax Amount</label>
-                            <input name="tax_amount" type="number" class="form-control" id="tax_amount" aria-label="Tax Amount" required>
+                            <input name="tax_amount" type="number" class="form-control" id="tax_amount" aria-label="Tax Amount" required readonly>
                         </div>
                         <div class="mb-3">
                             <label for="grand_total" class="form-label">Grand Total</label>
-                            <input name="grand_total" type="number" class="form-control" id="grand_total" aria-label="Grand Total" required>
+                            <input name="grand_total" type="number" class="form-control" id="grand_total" aria-label="Grand Total" required readonly>
                         </div>
                         <div class="mb-3">
                             <label for="amount_paid" class="form-label">Amount Payed</label>
                             <input name="amount_paid" type="number" class="form-control" id="amount_paid" aria-label="Amount Paid" required>
                         </div>
+                        
                         <button type="submit" class="btn btn-success w-100">Create Sale</button>
                     </div>
                 </div>
@@ -147,7 +154,7 @@
     // Variable to store sale details and products
     var sale = {
         products: {
-            customer: 0,
+            customer: null, // Mặc định là null (Khách lẻ)
             sub_total: 0.00,
             grand_total: 0.00,
             tax_amount: 0.00,
@@ -230,7 +237,7 @@
                 rowCallback(row, data, displayNun, displayIndex, dataIndex) {
                     $(row).find("input[name='quantity']").TouchSpin({
                         min: 1,
-                        max: 100, // Máximo de acuerdo al stock de cada itemo
+                        max: 100, 
                         step: 1,
                         decimals: 0,
                         boostat: 1,
@@ -256,32 +263,38 @@
             sale.calculate_sale();
         });
 
-        // Select2 customers
-        $('#searchbox_customers').select2({
+        // ---------------------------------------------------------
+        // QUAN TRỌNG: Cấu hình Select2 cho ô Khách hàng (Sửa lại ID thành #customer)
+        // ---------------------------------------------------------
+        $('#customer').select2({
             delay: 250,
-            placeholder: "Select a customer",
+            placeholder: "Search name or phone number...",
             allowClear: true,
-            minimumInputLength: 1,
+            minimumInputLength: 1, // Gõ 1 ký tự là bắt đầu tìm
             ajax: {
-                url: "{% url 'get_customers' %}",
+                url: "{% url 'get_customers' %}", // URL này phải được định nghĩa trong urls.py
                 type: 'POST',
                 data: function (params) {
                     return {
-                        term: params.term,
-                        csrfmiddlewaretoken: $('input[name="csrfmiddlewaretoken"]').val() // Include CSRF token
+                        term: params.term, // Gửi từ khóa tìm kiếm lên server
+                        csrfmiddlewaretoken: $('input[name="csrfmiddlewaretoken"]').val()
                     };
                 },
                 processResults: function (data) {
                     return {
-                        results: data
+                        results: data // data trả về phải có dạng [{id: 1, text: 'Tên - SĐT'}, ...]
                     };
                 }
             }
         }).on('select2:select', function (e) {
-            // When a customer is selected
+            // Khi chọn khách
             var data = e.params.data;
             sale.products.customer = data.id;
+        }).on('select2:clear', function (e) {
+            // Khi xóa chọn (về khách lẻ)
+            sale.products.customer = null;
         });
+        // ---------------------------------------------------------
 
         // Select2 items searchbox
         $('#searchbox_items').select2({
@@ -308,18 +321,14 @@
         }).on('select2:select', function (e) {
             // When an item is selected from the searchbox
             var data = e.params.data;
-            // Add number, subtotal, and quantity of the item to the dictionary
             data.number = number;
-            number++; // Increase the item number in the table
-            // Add the item to the sale object
+            number++; 
             sale.add_item(data);
-            // Clear the searchbox after the item is selected
             $(this).val('').trigger('change.select2');
         });
 
         // Tables Events
         $('#table_items tbody').on('click', 'a[rel="delete"]', function () {
-            // When an item is deleted
             var tr = tblItems.cell($(this).closest('td, li')).index();
             item_name = (tblItems.row(tr.row).data().name);
 
@@ -329,7 +338,7 @@
                     cancelButton: 'btn btn-success'
                 },
                 buttonsStyling: false,
-                title: "Are you sure you want to delete this item from the sale?",
+                title: "Delete item?",
                 text: item_name,
                 icon: 'warning',
                 showCancelButton: true,
@@ -337,52 +346,38 @@
                 cancelButtonText: 'Cancel',
                 reverseButtons: true,
             }).then((result) => {
-                // If confirmed
                 if (result.isConfirmed) {
-                    // Delete the item
                     sale.products.items.splice(tr.row, 1);
-                    // List the table again
                     sale.list_item();
-                    Swal.fire('The item was eliminated!', '', 'success');
                 }
             });
         }).on('change keyup', 'input[name="quantity"]', function () {
-            // When an item changes its quantity
             var quantity = parseInt($(this).val());
             var tr = tblItems.cell($(this).closest('td, li')).index();
-            // Update the item quantity in the sale object
             sale.products.items[tr.row].quantity = quantity;
-            // Calculate the sale with the new quantity
             sale.calculate_sale();
-            // Find the row to update the item total
             $('td:eq(4)', tblItems.row(tr.row).node()).html(sale.products.items[tr.row].total_item + ' $');
         });
 
         // Delete all items
         $('.deleteAll').on('click', function () {
-            // If there are no items, don't do anything
             if (sale.products.items.length === 0) return false;
-            // Alert the user
             Swal.fire({
                 customClass: {
                     confirmButton: 'ml-3 btn btn-danger',
                     cancelButton: 'btn btn-success'
                 },
                 buttonsStyling: false,
-                title: "Are you sure you want to delete all items from the sale?",
+                title: "Delete all items?",
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonText: 'Delete all',
                 cancelButtonText: 'Cancel',
                 reverseButtons: true,
             }).then((result) => {
-                // If confirmed
                 if (result.isConfirmed) {
-                    // Remove all items from the sale object
                     sale.products.items = [];
-                    // Recalculate the sale
                     sale.list_item();
-                    Swal.fire('All items were eliminated!', '', 'success');
                 }
             });
         });
@@ -408,23 +403,6 @@
             `);
         }
 
-        // Helper functions
-        function getAjax(type, url, data, successCallback, errorCallback) {
-            $.ajax({
-                type: type,
-                url: url,
-                data: data,
-                success: successCallback,
-                error: errorCallback
-            });
-        }
-
-        // Function to round numbers
-        function roundTo(value, decimals) {
-            const factor = Math.pow(10, decimals);
-            return Math.round(value * factor) / factor;
-        }
-
         // On form submit
         $('form#form_sale').on('submit', function (event) {
             event.preventDefault();
@@ -434,9 +412,12 @@
             var grandTotal = parseFloat($('input[name="grand_total"]').val());
             var amountChange = roundTo(amountPaid - grandTotal, 2);
 
-            // Gather sale details
+            // Kiểm tra khách hàng: Nếu select rỗng (khách lẻ), gán là ""
+            var customerVal = $('select[name="customer"]').val();
+            if(!customerVal) customerVal = ""; // Gửi chuỗi rỗng lên server
+
             var formData = {
-                customer: $('select[name="customer"]').val(),
+                customer: customerVal, 
                 sub_total: $('input[name="sub_total"]').val(),
                 grand_total: grandTotal,
                 amount_paid: amountPaid,
@@ -444,7 +425,7 @@
                 items: sale.products.items
             };
 
-            // Check if amount_change is present
+            // Validation
             if (isNaN(amountChange)) {
                 Swal.fire({
                     icon: 'error',
@@ -453,11 +434,17 @@
                 });
                 return;
             }
+            if (amountPaid < grandTotal) {
+                 Swal.fire({
+                    icon: 'error',
+                    title: 'Lỗi',
+                    text: 'Số tiền khách trả chưa đủ!'
+                });
+                return;
+            }
 
-            // Get CSRF token
             var csrftoken = $('input[name="csrfmiddlewaretoken"]').val();
 
-            // Submit the form data via AJAX
             $.ajax({
                 url: $(this).attr('action'),
                 type: 'POST',
@@ -467,10 +454,12 @@
                 },
                 data: JSON.stringify(formData),
                 success: function (response) {
-                    // Handle success response
                     sale.products.items = [];
                     sale.list_item();
                     $('form#form_sale').trigger('reset');
+                    // Reset Select2 về trạng thái Khách lẻ
+                    $('#customer').val(null).trigger('change'); 
+                    
                     Swal.fire({
                         icon: 'success',
                         title: 'Success',
@@ -488,5 +477,4 @@
         });
     });
 </script>
-
 {% endblock javascripts %}

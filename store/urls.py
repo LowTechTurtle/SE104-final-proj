@@ -124,6 +124,18 @@ urlpatterns = [
         CategoryDeleteView.as_view(),
         name='category-delete'
     ),
+
+    path(
+        'export-products/', 
+        views.export_products, 
+        name='export_products'
+    ),
+
+    path(
+        'export-sales/', 
+        views.export_sales, 
+        name='export_sales'
+    ),
 ]
 
 # Static media files configuration for development

@@ -21,6 +21,8 @@ from django.views.generic import (
 from django_tables2 import SingleTableView
 from django_tables2.export.views import ExportMixin
 
+from django.db.models import Q
+
 # Local app imports
 from .models import Profile, Customer, Vendor
 from .forms import (
@@ -232,14 +234,33 @@ def is_ajax(request):
 @require_POST
 @login_required
 def get_customers(request):
-    if is_ajax(request) and request.method == 'POST':
-        term = request.POST.get('term', '')
+    """
+    Hàm xử lý AJAX request từ Select2 để tìm khách hàng
+    """
+    if request.method == 'POST':
+        # Lấy từ khóa người dùng gõ vào (tên hoặc sđt)
+        key = request.POST.get('term', '')
+        
+        # Tìm kiếm theo: Tên (first_name) HOẶC Họ (last_name) HOẶC SĐT (phone)
         customers = Customer.objects.filter(
-            name__icontains=term
-        ).values('id', 'name')
-        customer_list = list(customers)
-        return JsonResponse(customer_list, safe=False)
-    return JsonResponse({'error': 'Invalid request method'}, status=400)
+            Q(first_name__icontains=key) |
+            Q(last_name__icontains=key) |
+            Q(phone__icontains=key)  # <--- Đây là dòng giúp tìm bằng SĐT
+        )
+
+        data = []
+        for c in customers:
+            # Tạo chuỗi hiển thị: "Nguyễn Văn A - 0912345678"
+            # Xử lý trường hợp phone bị None
+            phone_display = c.phone if c.phone else "No Phone"
+            label_display = f"{c.first_name} {c.last_name} - {phone_display}"
+            
+            data.append({
+                'id': c.id,
+                'text': label_display # Select2 dùng key 'text' để hiển thị
+            })
+            
+        return JsonResponse(data, safe=False)
 
 
 class VendorListView(LoginRequiredMixin, ListView):

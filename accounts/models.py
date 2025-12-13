@@ -136,8 +136,9 @@ class Customer(models.Model):
     class Meta:
         db_table = 'Customers'
 
-    def __str__(self) -> str:
-        return self.first_name + " " + self.last_name
+    def __str__(self):
+        # Hiển thị dạng: "Nguyễn Văn A - 0912345678"
+        return f"{self.first_name} {self.last_name} - {self.phone}"
 
     def get_full_name(self):
         return self.first_name + " " + self.last_name

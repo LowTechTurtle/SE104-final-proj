@@ -142,7 +142,8 @@ class SaleListView(LoginRequiredMixin, ListView):
     template_name = "transactions/sales_list.html"
     context_object_name = "sales"
     paginate_by = 10
-    ordering = ['date_added']
+
+    ordering = ['id']
 
 
 class SaleDetailView(LoginRequiredMixin, DetailView):
@@ -152,7 +153,6 @@ class SaleDetailView(LoginRequiredMixin, DetailView):
 
     model = Sale
     template_name = "transactions/saledetail.html"
-
 
 def SaleCreateView(request):
     context = {
@@ -176,9 +176,19 @@ def SaleCreateView(request):
                     if field not in data:
                         raise ValueError(f"Missing required field: {field}")
 
+                # --- ĐOẠN ĐÃ SỬA (FIX BUG SỐ 1) ---
+                # Lấy ID khách hàng từ dữ liệu
+                customer_id = data.get('customer')
+                customer_obj = None  # Mặc định là None (Khách ẩn danh)
+
+                # Kiểm tra: nếu customer_id không rỗng và không phải None thì mới đi tìm trong DB
+                if customer_id and str(customer_id).strip():
+                    customer_obj = Customer.objects.get(id=int(customer_id))
+                # ----------------------------------
+
                 # Create sale attributes
                 sale_attributes = {
-                    "customer": Customer.objects.get(id=int(data['customer'])),
+                    "customer": customer_obj, # Truyền object khách hàng (hoặc None) vào đây
                     "sub_total": float(data["sub_total"]),
                     "grand_total": float(data["grand_total"]),
                     "tax_amount": float(data.get("tax_amount", 0.0)),
@@ -269,7 +279,6 @@ def SaleCreateView(request):
                     }, status=500)
 
     return render(request, "transactions/sale_create.html", context=context)
-
 
 class SaleDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     """

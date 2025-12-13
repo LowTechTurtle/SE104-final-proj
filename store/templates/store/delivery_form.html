@@ -1,73 +1,92 @@
 {% extends "store/base.html" %}
+{% load static %}
+
+<!-- Thêm CSS cho Select2 (Tìm kiếm đơn hàng) -->
+{% block stylesheets %}
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@ttskch/select2-bootstrap4-theme@1.5.2/dist/select2-bootstrap4.min.css">
+{% endblock stylesheets %}
 
 {% block content %}
-  <div class="container m-4">
-    <h2>{% if form.instance.pk %}Update Delivery{% else %}Create Delivery{% endif %}</h2>
-    <form method="post" action="{% if form.instance.pk %}{% url 'delivery-update' form.instance.pk %}{% else %}{% url 'delivery-create' %}{% endif %}">
-      {% csrf_token %}
-      <div class="row p-3">
-        <div class="col-md-6">
-          <div class="form-group">
-            {{ form.item.label_tag }}
-            {{ form.item }}
-            {% if form.item.errors %}
-              <span class="text-danger">{{ form.item.errors }}</span>
-            {% endif %}
-          </div>
+<div class="container m-4">
+    <div class="card shadow-sm border-light">
+        <div class="card-header bg-success text-white">
+            <h4 class="mb-0">{% if form.instance.pk %}Update Delivery{% else %}Create Delivery{% endif %}</h4>
         </div>
-        <div class="col-md-6">
-          <div class="form-group">
-            {{ form.customer_name.label_tag }}
-            {{ form.customer_name }}
-            {% if form.customer_name.errors %}
-              <span class="text-danger">{{ form.customer_name.errors }}</span>
-            {% endif %}
-          </div>
+        
+        <div class="card-body">
+            <form method="post" action="{% if form.instance.pk %}{% url 'delivery-update' form.instance.pk %}{% else %}{% url 'delivery-create' %}{% endif %}">
+                {% csrf_token %}
+                
+                <!-- Dòng 1: Chọn Đơn hàng (Sale) -->
+                <div class="row mb-4">
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <label for="{{ form.sale.id_for_label }}" class="form-label fw-bold">Sale Order</label>
+                            {{ form.sale }}
+                            {% if form.sale.errors %}
+                                <div class="text-danger mt-1">{{ form.sale.errors }}</div>
+                            {% endif %}
+                            <small class="text-muted">Select a sale to attach this delivery.</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dòng 2: Địa chỉ & Trạng thái -->
+                <div class="row mb-4">
+                    <!-- Địa chỉ -->
+                    <div class="col-md-8">
+                        <div class="form-group">
+                            <label for="{{ form.location.id_for_label }}" class="form-label fw-bold">Delivery Location</label>
+                            {{ form.location }}
+                            {% if form.location.errors %}
+                                <div class="text-danger mt-1">{{ form.location.errors }}</div>
+                            {% endif %}
+                            <small class="text-muted">If empty, the customer's default address will be used.</small>
+                        </div>
+                    </div>
+
+                    <!-- Trạng thái -->
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label class="form-label fw-bold d-block">Status</label>
+                            <div class="d-flex align-items-center mt-2">
+                                {{ form.is_delivered }}
+                                <label class="form-check-label ms-2" for="{{ form.is_delivered.id_for_label }}">
+                                    Is Delivered?
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Nút bấm -->
+                <div class="d-flex justify-content-end gap-2">
+                    <a href="{% url 'deliveries' %}" class="btn btn-secondary">Cancel</a>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fa fa-save"></i> Save Delivery
+                    </button>
+                </div>
+            </form>
         </div>
-      </div>
-      <div class="row p-3">
-        <div class="col-md-6">
-          <div class="form-group">
-            {{ form.phone_number.label_tag }}
-            {{ form.phone_number }}
-            {% if form.phone_number.errors %}
-              <span class="text-danger">{{ form.phone_number.errors }}</span>
-            {% endif %}
-          </div>
-        </div>
-        <div class="col-md-6">
-          <div class="form-group">
-            {{ form.location.label_tag }}
-            {{ form.location }}
-            {% if form.location.errors %}
-              <span class="text-danger">{{ form.location.errors }}</span>
-            {% endif %}
-          </div>
-        </div>
-      </div>
-      <div class="row p-3">
-        <div class="col-md-6">
-          <div class="form-group">
-            {{ form.date.label_tag }}
-            {{ form.date }}
-            {% if form.date.errors %}
-              <span class="text-danger">{{ form.date.errors }}</span>
-            {% endif %}
-          </div>
-        </div>
-        <div class="col-md-6">
-          <div class="form-group">
-            {{ form.is_delivered }}
-            {{ form.is_delivered.label_tag }}
-            {% if form.is_delivered.errors %}
-              <span class="text-danger">{{ form.is_delivered.errors }}</span>
-            {% endif %}
-          </div>
-        </div>
-      </div>
-      <button type="submit" class="btn btn-primary mt-2">
-        <i class="fa fa-save"></i> Submit
-      </button>
-    </form>
-  </div>
-{% endblock %}
+    </div>
+</div>
+{% endblock content %}
+
+<!-- Javascript để kích hoạt thanh tìm kiếm -->
+{% block javascripts %}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+<script>
+    $(document).ready(function() {
+        // Kích hoạt Select2 cho ô chọn Sale
+        $('.select2').select2({
+            theme: 'bootstrap4',
+            placeholder: "Search by Sale ID...",
+            allowClear: true,
+            width: '100%'
+        });
+    });
+</script>
+{% endblock javascripts %}

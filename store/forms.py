@@ -1,6 +1,7 @@
 from django import forms
 from .models import Item, Category, Delivery
 
+from transactions.models import Sale
 
 class ItemForm(forms.ModelForm):
     """
@@ -56,36 +57,28 @@ class CategoryForm(forms.ModelForm):
 
 
 class DeliveryForm(forms.ModelForm):
+    # Tạo dropdown chọn đơn hàng (Sale)
+    sale = forms.ModelChoiceField(
+        queryset=Sale.objects.all().order_by('-id'), # Đơn mới nhất lên đầu
+        widget=forms.Select(attrs={
+            'class': 'form-control select2', # Thêm class select2 để tí nữa dùng JS
+            'style': 'width: 100%;'
+        }),
+        label="Select Sale Order"
+    )
+
     class Meta:
         model = Delivery
-        fields = [
-            'location',
-            'is_delivered'
-        ]
+        # Chỉ lấy 3 trường cần thiết
+        fields = ['sale', 'location', 'is_delivered']
+        
         widgets = {
-            'item': forms.Select(attrs={
-                'class': 'form-control',
-                'placeholder': 'Select item',
-            }),
-            'customer_name': forms.TextInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Enter customer name',
-            }),
-            'phone_number': forms.TextInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Enter phone number',
-            }),
             'location': forms.TextInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Enter delivery location',
-            }),
-            'date': forms.DateTimeInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Select delivery date and time',
-                'type': 'datetime-local'
+                'class': 'form-control', 
+                'placeholder': 'Leave empty to use Customer Address' # Gợi ý người dùng
             }),
             'is_delivered': forms.CheckboxInput(attrs={
                 'class': 'form-check-input',
-                'label': 'Mark as delivered',
+                'style': 'width: 20px; height: 20px;' # Cho nút check to ra tí cho dễ bấm
             }),
         }

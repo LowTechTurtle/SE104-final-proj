@@ -17,7 +17,7 @@ from functools import reduce
 # Django core imports
 from django.shortcuts import render
 from django.urls import reverse, reverse_lazy
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_exempt
 from django.db.models import Q, Count, Sum
@@ -44,6 +44,7 @@ from .models import Category, Item, Delivery
 from .forms import ItemForm, CategoryForm, DeliveryForm
 from .tables import ItemTable
 
+import openpyxl
 
 @login_required
 def dashboard(request):
@@ -110,6 +111,8 @@ class ProductListView(LoginRequiredMixin, ExportMixin, tables.SingleTableView):
     context_object_name = "items"
     paginate_by = 10
     SingleTableView.table_pagination = False
+
+    ordering = ['id']
 
 
 class ItemSearchListView(ProductListView):
@@ -396,3 +399,142 @@ def get_items_ajax_view(request):
         except Exception as e:
             return JsonResponse({'error': str(e)}, status=500)
     return JsonResponse({'error': 'Not an AJAX request'}, status=400)
+
+@login_required
+def export_products(request):
+    # 1. Tạo file Excel
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = 'attachment; filename="List_Products.xlsx"'
+
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Products"
+
+    # 2. Tạo tiêu đề cột (Header)
+    columns = ['ID', 'Name', 'Category', 'Quantity', 'Price', 'Expiring Date', 'Vendor']
+    ws.append(columns)
+
+    # In đậm tiêu đề
+    header_font = openpyxl.styles.Font(bold=True)
+    for cell in ws[1]:
+        cell.font = header_font
+
+    # 3. Lấy dữ liệu
+    rows = Item.objects.all().select_related('category', 'vendor').order_by('id')
+
+    for item in rows:
+        # Xử lý Category và Vendor (Lấy tên)
+        cat_name = item.category.name if item.category else "-"
+        ven_name = item.vendor.name if item.vendor else "-"
+        
+        # Xử lý ngày hết hạn
+        exp_date = "-"
+        # if item.expiring_date:
+        #      exp_date = item.expiring_date.strftime('%d/%m/%Y')
+
+        # Ghi dòng dữ liệu
+        ws.append([
+            item.id,
+            item.name,
+            cat_name,
+            item.quantity,
+            item.price,
+            exp_date,
+            ven_name
+        ])
+
+    # 4. Chỉnh độ rộng cột tự động
+    for col in ws.columns:
+        max_length = 0
+        column = col[0].column_letter
+        for cell in col:
+            try:
+                if len(str(cell.value)) > max_length:
+                    max_length = len(str(cell.value))
+            except:
+                pass
+        adjusted_width = (max_length + 2)
+        ws.column_dimensions[column].width = adjusted_width
+
+    wb.save(response)
+    return response
+
+@login_required
+def export_sales(request):
+    """
+    Export danh sách đơn hàng (Y chang giao diện Web)
+    """
+    # 1. Tạo file Excel
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = 'attachment; filename="Sales_List.xlsx"'
+
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Sales"
+
+    # 2. Định nghĩa Header (Khớp với các cột trong ảnh bạn gửi)
+    columns = [
+        'ID', 
+        'Date', 
+        'Customer', 
+        'Sub Total', 
+        'Grand Total', 
+        'Tax Amount', 
+        'Tax Percentage', 
+        'Amount Paid', 
+        'Amount Change'
+    ]
+    ws.append(columns)
+
+    # Format Header in đậm
+    header_font = openpyxl.styles.Font(bold=True)
+    for cell in ws[1]:
+        cell.font = header_font
+
+    # 3. Query dữ liệu
+    # Dùng select_related('customer') để lấy thông tin khách nhanh hơn
+    rows = Sale.objects.all().select_related('customer').order_by('date_added')
+
+    for sale in rows:
+        # -- Xử lý ngày tháng --
+        sale_date = "-"
+        if sale.date_added:
+            # Format y hệt trong ảnh: YYYY-MM-DD HH:MM:SS
+            sale_date = sale.date_added.strftime('%Y-%m-%d %H:%M:%S')
+
+        # -- Xử lý tên khách hàng --
+        # Trong ảnh bạn hiển thị kiểu: "Tên - SĐT"
+        customer_obj = sale.customer
+        if customer_obj:
+            customer_str = f"{customer_obj.first_name} {customer_obj.last_name} - {getattr(customer_obj, 'phone', '')}"
+        else:
+            customer_str = "None"
+
+        # -- Ghi dòng dữ liệu --
+        ws.append([
+            sale.id,
+            sale_date,
+            customer_str,
+            sale.sub_total,
+            sale.grand_total,
+            sale.tax_amount,
+            sale.tax_percentage,
+            sale.amount_paid,
+            sale.amount_change
+        ])
+
+    # 4. Auto-fit độ rộng cột cho đẹp
+    for col in ws.columns:
+        max_length = 0
+        column = col[0].column_letter
+        for cell in col:
+            try:
+                if len(str(cell.value)) > max_length:
+                    max_length = len(str(cell.value))
+            except:
+                pass
+        adjusted_width = (max_length + 2)
+        ws.column_dimensions[column].width = adjusted_width
+
+    wb.save(response)
+    return response

@@ -49,11 +49,51 @@
                 {% for delivery in deliveries %}
                 <tr>
                     <th scope="row">{{ delivery.id }}</th>
-                    <td>{{ delivery.item.name }}</td>
-                    <td>{{ delivery.customer_name }}</td>
-                    <td>{{ delivery.phone_number }}</td>
-                    <td>{{ delivery.location }}</td>
-                    <td>{{ delivery.date }}</td>
+                    
+                    <!-- Cột Name (Tên đơn hàng/Sản phẩm) -->
+                    <!-- Vì Sale có nhiều món, ta hiển thị ID đơn hàng cho gọn -->
+                    <td>Sale #{{ delivery.sale.id }}</td>
+                    
+                    <!-- Cột Customer Name (Lấy từ bảng Customer) -->
+                    <td>
+                        {% if delivery.sale.customer %}
+                            {{ delivery.sale.customer.first_name }} {{ delivery.sale.customer.last_name }}
+                        {% else %}
+                            <span class="text-muted">Khách lẻ</span>
+                        {% endif %}
+                    </td>
+                    
+                    <!-- Cột Contact (SĐT từ bảng Customer) -->
+                    <td>
+                        {% if delivery.sale.customer %}
+                            {{ delivery.sale.customer.phone }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    
+                    <!-- Cột Address (Yêu cầu chính của bạn) -->
+                    <!-- Logic: Nếu delivery có nhập location riêng thì lấy, không thì lấy địa chỉ khách -->
+                    <td>
+                        {% if delivery.location %}
+                            {{ delivery.location }}
+                        {% elif delivery.sale.customer.address %}
+                            {{ delivery.sale.customer.address }}
+                        {% else %}
+                            <span class="text-danger">Chưa có địa chỉ</span>
+                        {% endif %}
+                    </td>
+                    
+                    <!-- Cột Delivery Date -->
+                    <td>
+                        {% if delivery.date_created %}
+                            {{ delivery.date_created|date:"d/m/Y H:i" }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    
+                    <!-- Cột Status (Giữ nguyên) -->
                     <td>
                         {% if delivery.is_delivered %}
                         <span class="badge bg-success text-white">Delivered</span>

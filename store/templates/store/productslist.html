@@ -16,7 +16,7 @@
                     <a class="btn btn-success btn-sm rounded-pill shadow-sm" href="{% url 'product-create' %}">
                         <i class="fa-solid fa-plus"></i> Add Item
                     </a>
-                    <a class="btn btn-success btn-sm rounded-pill shadow-sm" href="{% querystring '_export'='xlsx' %}">
+                    <a class="btn btn-success btn-sm rounded-pill shadow-sm" href="{% url 'export_products' %}">
                         <i class="fa-solid fa-download"></i> Export to Excel
                     </a>
                 </div>
@@ -49,7 +49,7 @@
                 <tr>
                     <th scope="row">{{ item.id }}</th>
                     <td>{{ item.name }}</td>
-                    <td>{{ item.category }}</td>
+                    <td>{{ item.category.name }}</td>
                     <td>{{ item.quantity }}</td>
                     <td>{{ item.price }}</td>
                     <td>{{ item.expiring_date }}</td>

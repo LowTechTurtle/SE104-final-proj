@@ -16,8 +16,7 @@ from django.urls import reverse
 from django.forms import model_to_dict
 from django_extensions.db.fields import AutoSlugField
 from phonenumber_field.modelfields import PhoneNumberField
-from accounts.models import Vendor
-
+from accounts.models import Vendor 
 
 class Category(models.Model):
     """
@@ -76,20 +75,26 @@ class Item(models.Model):
         ordering = ['name']
         verbose_name_plural = 'Items'
 
-
 class Delivery(models.Model):
     """
     Represents a delivery of an item to a customer.
     """
-    location = models.CharField(max_length=20, blank=True, null=True)
+    # Thay vì dùng class Sale trực tiếp, ta dùng chuỗi 'transactions.Sale'
+    # Django sẽ tự tìm đến app transactions và lấy model Sale cho bạn
+    sale = models.ForeignKey(
+        'transactions.Sale', 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True,
+        related_name='deliveries'
+    )
+    
+    location = models.CharField(max_length=255, blank=True, null=True)
     is_delivered = models.BooleanField(
         default=False, verbose_name='Is Delivered'
     )
+    
+    date_created = models.DateTimeField(auto_now_add=True, null=True)
 
     def __str__(self):
-        """
-        String representation of the delivery.
-        """
-        return (
-            f"Delivery of to {self.location}"
-        )
+        return f"Delivery for Sale #{self.sale.id if self.sale else 'N/A'}"

@@ -19,7 +19,9 @@ class Sale(models.Model):
     )
     customer = models.ForeignKey(
         Customer,
-        on_delete=models.DO_NOTHING,
+        on_delete=models.SET_NULL, # Đổi từ DO_NOTHING sang SET_NULL để tránh lỗi khi user bị xóa
+        null=True,                 # Cho phép Database lưu giá trị NULL (Khách ẩn danh)
+        blank=True,                # Cho phép Form submit mà không cần chọn Customer
         db_column="customer"
     )
     sub_total = models.DecimalField(
@@ -115,10 +117,19 @@ class Purchase(models.Model):
     Represents a purchase of an item,
     including vendor details and delivery status.
     """
-
     slug = AutoSlugField(unique=True, populate_from="order_date")
     description = models.TextField(max_length=300, blank=True, null=True)
     order_date = models.DateTimeField(auto_now_add=True)
+    
+    # --- THÊM DÒNG NÀY (QUAN TRỌNG) ---
+    vendor = models.ForeignKey(
+        Vendor, 
+        on_delete=models.CASCADE,
+        related_name='purchases',
+        null=True # Tạm thời để null=True để tránh lỗi dữ liệu cũ
+    )
+    # ----------------------------------
+    
     delivery_date = models.DateTimeField(
         blank=True, null=True, verbose_name="Delivery Date"
     )
@@ -149,10 +160,8 @@ class Purchase(models.Model):
         self.item.save()
 
     def __str__(self):
-        """
-        Returns a string representation of the Purchase instance.
-        """
-        return str(self.item.name)
+        vendor_name = self.vendor.name if self.vendor else "Unknown"
+        return f"{self.item.name} ({self.quantity}) - {vendor_name}"
 
     class Meta:
         ordering = ["order_date"]

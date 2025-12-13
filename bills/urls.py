@@ -1,6 +1,6 @@
 # Django core imports
 from django.urls import path
-
+from . import views
 # Local app imports
 from .views import (
     BillListView,
@@ -26,4 +26,7 @@ urlpatterns = [
         BillDeleteView.as_view(),
         name='bill_delete'
     ),
+    path('export-bills/', 
+        views.export_bills, 
+        name='export_bills'),
 ]
