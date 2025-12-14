@@ -2,7 +2,7 @@ from django.db import models
 from django_extensions.db.fields import AutoSlugField
 
 from store.models import Item, Delivery
-
+from accounts.models import Customer
 
 class Invoice(models.Model):
     """
@@ -26,8 +26,15 @@ class Invoice(models.Model):
         auto_now=True,
         verbose_name='Date (e.g., 2022/11/22)'
     )
-    customer_name = models.CharField(max_length=30)
-    contact_number = models.CharField(max_length=13)
+
+    customer = models.ForeignKey(
+        Customer,
+        on_delete=models.SET_NULL, # Nếu xóa khách thì hóa đơn vẫn còn (nhưng mất tên)
+        null=True,
+        blank=True,
+        related_name='invoices'
+    )
+
     item = models.ForeignKey(Item, on_delete=models.CASCADE)
     price_per_item = models.FloatField(verbose_name='Price Per Item (Ksh)')
     quantity = models.FloatField(default=0.00)
@@ -38,17 +45,15 @@ class Invoice(models.Model):
     grand_total = models.FloatField(
         verbose_name='Grand Total (Ksh)', editable=False
     )
-    delivery = models.ForeignKey(Delivery, on_delete=models.CASCADE)
 
     def save(self, *args, **kwargs):
         """
         Update total and grand_total before saving.
         """
+        # Giữ lại logic tính toán
         self.total = round(self.quantity * self.price_per_item, 2)
         self.grand_total = round(self.total + self.shipping, 2)
-        if not self.delivery_id:
-            self.delivery = Delivery.objects.create()
-
+        
         return super().save(*args, **kwargs)
 
     def __str__(self):

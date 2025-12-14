@@ -16,7 +16,10 @@ from django_tables2.export.views import ExportMixin
 # Local app imports
 from .models import Invoice
 from .tables import InvoiceTable
+# --- QUAN TRỌNG: Import Form vừa tạo ---
+from .forms import InvoiceForm  
 
+from store.models import Delivery
 
 class InvoiceListView(LoginRequiredMixin, ExportMixin, SingleTableView):
     """
@@ -27,7 +30,7 @@ class InvoiceListView(LoginRequiredMixin, ExportMixin, SingleTableView):
     template_name = 'invoice/invoicelist.html'
     context_object_name = 'invoices'
     paginate_by = 10
-    table_pagination = False  # Disable table pagination
+    table_pagination = False
 
 
 class InvoiceDetailView(DetailView):
@@ -38,9 +41,6 @@ class InvoiceDetailView(DetailView):
     template_name = 'invoice/invoicedetail.html'
 
     def get_success_url(self):
-        """
-        Return the URL to redirect to after a successful action.
-        """
         return reverse('invoice-detail', kwargs={'slug': self.object.pk})
 
 
@@ -50,16 +50,35 @@ class InvoiceCreateView(LoginRequiredMixin, CreateView):
     """
     model = Invoice
     template_name = 'invoice/invoicecreate.html'
-    fields = [
-        'customer_name', 'contact_number', 'item',
-        'price_per_item', 'quantity', 'shipping'
-    ]
+    
+    # --- ĐOẠN ĐÃ SỬA ---
+    # Bỏ fields = [...] vì nó chứa trường cũ và không dùng widget Select2
+    # Thay bằng form_class để dùng form xịn trong forms.py
+    form_class = InvoiceForm
+    # -------------------
 
     def get_success_url(self):
-        """
-        Return the URL to redirect to after a successful creation.
-        """
         return reverse('invoicelist')
+
+    # --- THÊM HÀM NÀY ĐỂ TỰ ĐỘNG TẠO DELIVERY ---
+    def form_valid(self, form):
+        # 1. Lưu Invoice trước
+        response = super().form_valid(form)
+        
+        # 2. Lấy object Invoice vừa tạo ra
+        created_invoice = self.object
+        
+        # 3. Tự động tạo một Delivery gắn với Invoice này
+        Delivery.objects.create(
+            invoice=created_invoice,
+            # Lấy địa chỉ khách hàng làm địa chỉ giao hàng mặc định
+            location=created_invoice.customer.address if created_invoice.customer else "Tại cửa hàng",
+            is_delivered=False # Mặc định là chưa giao
+        )
+        
+        return response
+    
+
 
 
 class InvoiceUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
@@ -68,21 +87,16 @@ class InvoiceUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     """
     model = Invoice
     template_name = 'invoice/invoiceupdate.html'
-    fields = [
-        'customer_name', 'contact_number', 'item',
-        'price_per_item', 'quantity', 'shipping'
-    ]
+    
+    # --- ĐOẠN ĐÃ SỬA ---
+    # Tương tự CreateView, ta dùng form_class
+    form_class = InvoiceForm
+    # -------------------
 
     def get_success_url(self):
-        """
-        Return the URL to redirect to after a successful update.
-        """
         return reverse('invoicelist')
 
     def test_func(self):
-        """
-        Determine if the user has permission to update the invoice.
-        """
         return self.request.user.is_superuser
 
 
@@ -92,16 +106,10 @@ class InvoiceDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     """
     model = Invoice
     template_name = 'invoice/invoicedelete.html'
-    success_url = '/products'  # Can be overridden in get_success_url()
+    success_url = '/products'
 
     def get_success_url(self):
-        """
-        Return the URL to redirect to after a successful deletion.
-        """
         return reverse('invoicelist')
 
     def test_func(self):
-        """
-        Determine if the user has permission to delete the invoice.
-        """
         return self.request.user.is_superuser

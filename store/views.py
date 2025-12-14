@@ -538,3 +538,15 @@ def export_sales(request):
 
     wb.save(response)
     return response
+
+@login_required
+def get_item_details(request, item_id):
+    try:
+        item = Item.objects.get(id=item_id)
+        data = {
+            'price': item.price,
+            # Có thể thêm các thông tin khác nếu cần sau này (vd: tồn kho)
+        }
+        return JsonResponse(data)
+    except Item.DoesNotExist:
+        return JsonResponse({'error': 'Item not found'}, status=404)

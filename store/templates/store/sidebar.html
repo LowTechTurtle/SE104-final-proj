@@ -69,10 +69,10 @@
                 <span class="badge bg-success text-light">
                     {% if request.user.profile.role == 'AD' %}
                         Admin
-                    {% elif request.user.profile.role == 'EX' %}
-                        Executive
+                    {% elif request.user.profile.role == 'MA' %}
+                        Manager
                     {% else %}
-                        Operative
+                        Staff
                     {% endif %}
                 </span>
             </div>

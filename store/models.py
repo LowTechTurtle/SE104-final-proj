@@ -89,6 +89,14 @@ class Delivery(models.Model):
         related_name='deliveries'
     )
     
+    invoice = models.ForeignKey(
+        'invoice.Invoice', 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True,
+        related_name='deliveries'
+    )
+
     location = models.CharField(max_length=255, blank=True, null=True)
     is_delivered = models.BooleanField(
         default=False, verbose_name='Is Delivered'
@@ -97,4 +105,9 @@ class Delivery(models.Model):
     date_created = models.DateTimeField(auto_now_add=True, null=True)
 
     def __str__(self):
-        return f"Delivery for Sale #{self.sale.id if self.sale else 'N/A'}"
+        # Sửa lại hiển thị cho đầy đủ
+        if self.sale:
+            return f"Delivery for Sale #{self.sale.id}"
+        elif self.invoice:
+            return f"Delivery for Invoice #{self.invoice.id}"
+        return "Empty Delivery"

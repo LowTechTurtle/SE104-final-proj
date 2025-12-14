@@ -41,8 +41,21 @@
                 {% for invoice in invoices %}
                 <tr>
                     <th scope="row">{{ invoice.id }}</th>
-                    <td><a href="{% url 'invoice-detail' invoice.slug %}">{{ invoice.customer_name }}</a></td>
-                    <td>{{ invoice.contact_number }}</td>
+                    <td>
+                        {% if invoice.customer %}
+                            {{ invoice.customer.first_name }} {{ invoice.customer.last_name }}
+                        {% else %}
+                            <span class="text-danger">Khách lẻ</span>
+                        {% endif %}
+                    </td>
+
+                    <td>
+                        {% if invoice.customer %}
+                            {{ invoice.customer.phone }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
                     <td>{{ invoice.item.name }}</td>
                     <td>{{ invoice.price_per_item }}</td>
                     <td>{{ invoice.quantity }}</td>

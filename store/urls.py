@@ -136,6 +136,12 @@ urlpatterns = [
         views.export_sales, 
         name='export_sales'
     ),
+
+    path(
+        'get-item-details/<int:item_id>/', 
+        views.get_item_details,
+        name='get_item_details'
+    ),
 ]
 
 # Static media files configuration for development

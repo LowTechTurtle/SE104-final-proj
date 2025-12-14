@@ -1,7 +1,26 @@
 {% extends "store/base.html" %}
 {% load static %}
 {% load crispy_forms_tags %}
-{% block title %}Create invoice{%endblock title%}{% block content %}
+
+{% block title %}Create invoice{% endblock title %}
+
+<!-- 1. Thêm CSS cho Select2 (Tìm kiếm) -->
+{% block stylesheets %}
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@ttskch/select2-bootstrap4-theme@1.5.2/dist/select2-bootstrap4.min.css">
+<style>
+    /* Fix lỗi hiển thị Select2 trong Crispy form nếu có */
+    .select2-container .select2-selection--single {
+        height: 38px !important;
+        padding-top: 5px;
+    }
+    .select2-container--bootstrap4 .select2-selection--single .select2-selection__arrow {
+        top: 6px !important;
+    }
+</style>
+{% endblock stylesheets %}
+
+{% block content %}
 <div class="col container p-5">
     <div class="row">
         <div class="col-md-3 col-lg-3"></div>
@@ -14,7 +33,9 @@
                             <h1 class="text-success">Create invoice</h1>
                             <hr>
                         </header>
-                        {{ form.media }} {{ form|crispy }}
+                        <!-- Form này sẽ tự render các field với class 'select2' mà ta đã khai báo trong forms.py -->
+                        {{ form.media }} 
+                        {{ form|crispy }}
                     </fieldset>
                 </section>
                 <div class="form-group mt-4 text-center">
@@ -26,3 +47,66 @@
     </div>
 </div>
 {% endblock content %}
+
+{% block javascripts %}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+<script>
+    $(document).ready(function() {
+        // 1. Kích hoạt Select2 (Giao diện đẹp)
+        $('.select2').select2({
+            theme: 'bootstrap4',
+            placeholder: "Search...",
+            allowClear: true,
+            width: '100%'
+        });
+
+        // 2. Logic tự động lấy giá
+        // Bắt sự kiện thay đổi ở ô Item (ID mặc định của Django là #id_item)
+        $('#id_item').on('change', function() {
+            var itemId = $(this).val();
+            console.log("---- BẮT ĐẦU DEBUG ----");
+            console.log("1. Đã chọn ID món hàng:", itemId);
+
+            if (itemId) {
+                // --- QUAN TRỌNG: Cấu hình đường dẫn ---
+                // Giả định đường dẫn là /store/get-item-details/ID/
+                // Nếu bạn chạy bị lỗi 404, hãy thử xóa chữ '/store' đi thành: '/get-item-details/' + ...
+                var url = '/get-item-details/' + itemId + '/';
+                
+                console.log("2. Đang gọi lên URL:", url);
+
+                $.ajax({
+                    url: url,
+                    type: 'GET',
+                    success: function(response) {
+                        console.log("3. Server trả về:", response);
+                        
+                        if (response.price) {
+                            // Điền giá vào ô có ID 'id_price_per_item' (như hình bạn gửi)
+                            $('#id_price_per_item').val(response.price);
+                            console.log("4. Đã điền giá " + response.price + " vào ô nhập liệu.");
+                        } else {
+                            console.warn("Server không trả về giá (price)!");
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error("!!! LỖI AJAX !!!");
+                        console.error("Trạng thái:", status);
+                        console.error("Chi tiết:", error);
+                        if(xhr.status == 404) {
+                            alert("Lỗi 404: Không tìm thấy đường dẫn '" + url + "'. \nHãy kiểm tra lại file urls.py xem có prefix 'store/' hay không.");
+                        } else if (xhr.status == 403) {
+                            alert("Lỗi 403: Bạn chưa đăng nhập hoặc không có quyền truy cập.");
+                        }
+                    }
+                });
+            } else {
+                // Nếu xóa chọn thì xóa giá
+                $('#id_price_per_item').val('');
+            }
+        });
+    });
+</script>
+{% endblock javascripts %}

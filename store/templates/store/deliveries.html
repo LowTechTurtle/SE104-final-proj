@@ -22,10 +22,7 @@
         }
     </style>
 
-    <div class="d-flex justify-content-between mb-3">
-        <a class="btn btn-success btn-sm" href="{% url 'delivery-create' %}">
-            Add Delivery
-        </a>
+    <div class="d-flex justify-content-end mb-3">
         <a class="btn btn-success btn-sm" href="{% querystring '_export'='xlsx' %}">
             <i class="fa-solid fa-download"></i> Export to Excel
         </a>
@@ -48,43 +45,59 @@
             <tbody>
                 {% for delivery in deliveries %}
                 <tr>
+                    <!-- 1. ID Giao hàng -->
                     <th scope="row">{{ delivery.id }}</th>
                     
-                    <!-- Cột Name (Tên đơn hàng/Sản phẩm) -->
-                    <!-- Vì Sale có nhiều món, ta hiển thị ID đơn hàng cho gọn -->
-                    <td>Sale #{{ delivery.sale.id }}</td>
-                    
-                    <!-- Cột Customer Name (Lấy từ bảng Customer) -->
+                    <!-- 2. Tên đơn hàng (Phân biệt Sale hay Invoice) -->
                     <td>
-                        {% if delivery.sale.customer %}
+                        {% if delivery.sale %}
+                            <span class="badge bg-primary">Sale #{{ delivery.sale.id }}</span>
+                        {% elif delivery.invoice %}
+                            <span class="badge bg-warning text-dark">Invoice #{{ delivery.invoice.id }}</span>
+                        {% else %}
+                            <span class="text-muted">-</span>
+                        {% endif %}
+                    </td>
+                    
+                    <!-- 3. Tên Khách hàng -->
+                    <td>
+                        {% if delivery.sale and delivery.sale.customer %}
                             {{ delivery.sale.customer.first_name }} {{ delivery.sale.customer.last_name }}
+                        {% elif delivery.invoice and delivery.invoice.customer %}
+                            {{ delivery.invoice.customer.first_name }} {{ delivery.invoice.customer.last_name }}
                         {% else %}
                             <span class="text-muted">Khách lẻ</span>
                         {% endif %}
                     </td>
                     
-                    <!-- Cột Contact (SĐT từ bảng Customer) -->
+                    <!-- 4. Số điện thoại -->
                     <td>
-                        {% if delivery.sale.customer %}
+                        {% if delivery.sale and delivery.sale.customer %}
                             {{ delivery.sale.customer.phone }}
+                        {% elif delivery.invoice and delivery.invoice.customer %}
+                            {{ delivery.invoice.customer.phone }}
                         {% else %}
                             -
                         {% endif %}
                     </td>
                     
-                    <!-- Cột Address (Yêu cầu chính của bạn) -->
-                    <!-- Logic: Nếu delivery có nhập location riêng thì lấy, không thì lấy địa chỉ khách -->
+                    <!-- 5. Địa chỉ (QUAN TRỌNG NHẤT) -->
                     <td>
                         {% if delivery.location %}
+                            <!-- Ưu tiên 1: Địa chỉ nhập riêng trong Delivery -->
                             {{ delivery.location }}
-                        {% elif delivery.sale.customer.address %}
+                        {% elif delivery.sale and delivery.sale.customer.address %}
+                            <!-- Ưu tiên 2: Địa chỉ từ Sale -->
                             {{ delivery.sale.customer.address }}
+                        {% elif delivery.invoice and delivery.invoice.customer.address %}
+                            <!-- Ưu tiên 3: Địa chỉ từ Invoice -->
+                            {{ delivery.invoice.customer.address }}
                         {% else %}
                             <span class="text-danger">Chưa có địa chỉ</span>
                         {% endif %}
                     </td>
                     
-                    <!-- Cột Delivery Date -->
+                    <!-- 6. Ngày tạo -->
                     <td>
                         {% if delivery.date_created %}
                             {{ delivery.date_created|date:"d/m/Y H:i" }}
@@ -93,7 +106,7 @@
                         {% endif %}
                     </td>
                     
-                    <!-- Cột Status (Giữ nguyên) -->
+                    <!-- 7. Trạng thái -->
                     <td>
                         {% if delivery.is_delivered %}
                         <span class="badge bg-success text-white">Delivered</span>
@@ -101,6 +114,8 @@
                         <span class="badge bg-danger text-white">Pending</span>
                         {% endif %}
                     </td>
+                    
+                    <!-- 8. Hành động -->
                     <td>
                         <a class="btn btn-outline-info btn-sm" href="{% url 'delivery-update' delivery.pk %}">
                             <i class="fa-solid fa-pen"></i> Edit
