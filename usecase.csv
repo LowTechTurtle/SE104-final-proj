@@ -1,0 +1,53 @@
+No.,Use Case ID,Use Case Name,Description,Actors
+1,UC01-1,Create Customer Account,Create an account for the customer,"Admin, Manager, Staff"
+2,UC01-2,Look Up Customer Info,View customer information within a specific account,"Admin, Manager, Staff"
+3,UC01-3,Edit Customer Account,Edit information in the customer account,"Admin, Manager, Staff"
+4,UC01-4,Delete Customer Account,Delete a customer's account from the system,"Admin, Manager"
+5,UC02-1,Create Internal Profile,"Create a profile containing personal information for internal staff (phone, email, address, etc.) ","Admin, Manager"
+6,UC02-2,View Internal Profile,View personal information of internal staff members,"Admin, Manager, Staff"
+7,UC02-3,Edit Internal Profile,Edit personal information of internal staff members,"Admin, Manager"
+8,UC02-4,Delete Internal Profile,Delete personal information of internal staff members,"Admin, Manager"
+9,UC02-5,Manage User Groups,Create user groups and assign permissions,Admin
+10,UC02-6,Create User Group,Create user groups and assign permissions,Admin
+11,UC02-7,View User Group,View user groups and assign permissions,Admin
+12,UC02-8,Delete User Group,Delete user groups and assign permissions,Admin
+13,UC02-9,Edit User Group,Edit user groups and assign permissions,Admin
+14,UC02-10,Create User,Create a user and assign them to a group,Admin
+15,UC02-11,View User,View system users,"Admin, Manager"
+16,UC02-12,Delete User,"Delete a user from the system (delete manager, staff, etc.) ",Admin
+17,UC02-13,Edit User,"Edit a user in the system (e.g., reset username, password, status) ",Admin
+18,UC03-1,Add Vendor,"Add supplier information (e.g., supplier name, phone, address, etc.) ","Admin, Manager"
+19,UC03-2,View Vendor,"View supplier information (e.g., supplier name, phone, address, etc.) ","Admin, Manager, Staff"
+20,UC03-3,Delete Vendor,"Delete supplier information (e.g., supplier name, phone, address, etc.) ","Admin, Manager"
+21,UC03-4,Edit Vendor Info,"Edit supplier information (e.g., supplier name, phone, address, etc.) ","Admin, Manager"
+22,UC04-1,Add Permission,Add system access rights for a user,Admin
+23,UC04-2,View Permission,View system access rights of a user,Admin
+24,UC04-3,Edit Permission,Change system access rights for a user,Admin
+25,UC04-4,Delete Permission,Remove system access rights of a user,Admin
+26,UC05-1,View Bill,View bill details and the payment status of that bill,"Admin, Manager, Staff"
+27,UC05-2,Edit Bill,Edit the bill for a specific transaction,"Admin, Manager, Staff"
+28,UC05-3,Delete Bill,Delete the bill for a specific transaction,"Admin, Manager"
+29,UC06-1,View Invoice,View details of a specific invoice,"Admin, Manager, Staff"
+30,UC06-2,Edit Invoice,Edit the invoice for a specific transaction,"Admin, Manager, Staff"
+31,UC06-3,Delete Invoice,Delete the invoice for a specific transaction,"Admin, Manager"
+32,UC07-1,Add Product Category,Add a new category of goods,"Admin, Manager"
+33,UC07-2,View Product Category,View details of a new category of goods,"Admin, Manager, Staff"
+34,UC07-3,Edit Product Category,Edit details of a specific category of goods,"Admin, Manager"
+35,UC07-4,Delete Product Category,Delete a category of goods,"Admin, Manager"
+36,UC07-5,Add New Delivery,"Add information for a delivery package (delivery address, phone, delivery date, etc.) ","Admin, Manager, Staff"
+37,UC08-1,View Delivery Info,View information of a delivered package,"Admin, Manager, Staff"
+38,UC08-2,Edit New Delivery Info,"Edit information (address, phone, etc.) of a delivered package ","Admin, Manager, Staff"
+39,UC08-3,Delete Delivery,Delete a package,"Admin, Manager"
+40,UC09-1,Add Item,"Add product to the warehouse (price, quantity, etc.) ","Admin, Manager"
+41,UC09-2,View Item,View details about a specific product in the warehouse,"Admin, Manager, Staff"
+42,UC09-3,Edit Item,"Edit details about a product (price, quantity, etc.) ","Admin, Manager"
+43,UC09-4,Delete Item,Delete a product type from the warehouse,"Admin, Manager"
+44,UC10-1,Add Sale,"Add information about a sale ","Admin, Manager, Staff"
+45,UC10-2,View Sale,"View information about a sale","Admin, Manager, Staff"
+46,UC10-3,Edit Sale,"Edit information about a sale","Admin, Manager, Staff"
+47,UC10-4,Delete Sale,Delete a sale,"Admin, Manager"
+48,UC11-1,Add Purchase,Add information about a new stock import batch,"Admin, Manager"
+49,UC11-2,View Purchase,View information about a new stock import batch,"Admin, Manager, Staff"
+50,UC11-3,Edit Purchase,Edit information about a new stock import batch,"Admin, Manager"
+51,UC11-4,Delete Purchase,Delete information about a new stock import batch,"Admin, Manager"
+52,UC12,Revenue Statistics,View information about total revenue by day,"Admin, Manager, Staff"
