@@ -81,7 +81,7 @@
                             <label for="customer" class="form-label">Customer</label>
                             <!-- Chú ý: id="customer" trùng với logic JS bên dưới -->
                             <select name="customer" class="form-select" id="customer" aria-label="Customer" style="width: 100%">
-                                <option value="">--- Khách lẻ (Không lưu thông tin) ---</option>
+                                <option value="">--- Guest ---</option>
                                 <!-- Vòng lặp này giữ lại để hiển thị danh sách ban đầu nếu cần -->
                                 {% for customer in customers %}
                                     <option value="{{ customer.value }}">{{ customer.label }}</option>

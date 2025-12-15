@@ -142,6 +142,12 @@ urlpatterns = [
         views.get_item_details,
         name='get_item_details'
     ),
+
+    path(
+        'export-deliveries/', 
+        views.export_deliveries, 
+        name='export_deliveries'
+    ),
 ]
 
 # Static media files configuration for development

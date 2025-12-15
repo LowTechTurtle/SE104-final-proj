@@ -21,9 +21,9 @@
                                 <th scope="row">Staff role</th>
                                 <td>
                                     <span class="badge badge-pill bg-soft-success text-success me-2">
-                                    {% if user.profile.role == 'AD' %}
+                                    {% if user.profile.role == 'Admin' %}
                                     Admin
-                                    {% elif user.profile.role == 'MA' %}
+                                    {% elif user.profile.role == 'Manager' %}
                                     Manager
                                     {% else %}
                                     Staff

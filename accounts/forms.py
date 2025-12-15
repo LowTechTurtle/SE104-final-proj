@@ -37,12 +37,39 @@ class ProfileUpdateForm(forms.ModelForm):
         """Meta options for the ProfileUpdateForm."""
         model = Profile
         fields = [
+            'role',            # <--- Thêm trường Role vào để chỉnh sửa
             'telephone',
             'email',
             'first_name',
             'last_name',
             'profile_picture'
         ]
+        # Lưu ý: Đã xóa trường 'status' như bạn yêu cầu
+
+    def __init__(self, *args, **kwargs):
+        # Lấy biến 'user' (người đang thực hiện sửa) được truyền từ View
+        self.user = kwargs.pop('user', None)
+        super(ProfileUpdateForm, self).__init__(*args, **kwargs)
+
+        # Logic phân quyền hiển thị Role
+        if self.user:
+            # 1. Nếu là Manager
+            if hasattr(self.user, 'profile') and self.user.profile.role == 'Manager':
+                # Chỉ cho phép chọn Manager hoặc Staff
+                self.fields['role'].choices = [
+                    ('Manager', 'Manager'),
+                    ('Staff', 'Staff'),
+                ]
+            
+            # 2. Nếu là Admin hoặc Superuser
+            elif self.user.is_superuser or (hasattr(self.user, 'profile') and self.user.profile.role == 'Admin'):
+                # Giữ nguyên tất cả lựa chọn (Admin, Manager, Staff)
+                pass 
+            
+            # 3. Nếu là Staff (phòng hờ)
+            else:
+                # Khóa trường này lại, không cho sửa
+                self.fields['role'].disabled = True
 
 
 class CustomerForm(forms.ModelForm):

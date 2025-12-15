@@ -9,7 +9,8 @@ from .views import (
     InvoiceDetailView,
     InvoiceCreateView,
     InvoiceUpdateView,
-    InvoiceDeleteView
+    InvoiceDeleteView,
+    export_invoices
 )
 
 # URL patterns
@@ -40,6 +41,8 @@ urlpatterns = [
         InvoiceDeleteView.as_view(),
         name='invoice-delete'
     ),
+
+    path('export-invoices/', export_invoices, name='export_invoices'),
 ]
 
 # Static media files configuration for development

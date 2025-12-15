@@ -23,7 +23,9 @@ from store.models import Item
 from accounts.models import Customer
 from .models import Sale, Purchase, SaleDetail
 from .forms import PurchaseForm
+import openpyxl
 
+from django.contrib.auth.decorators import login_required
 
 logger = logging.getLogger(__name__)
 
@@ -80,56 +82,86 @@ def export_sales_to_excel(request):
     return response
 
 
-def export_purchases_to_excel(request):
-    # Create a workbook and select the active worksheet.
-    workbook = Workbook()
-    worksheet = workbook.active
-    worksheet.title = 'Purchases'
+@login_required
+def export_purchases(request):
+    """
+    Export danh sách Purchase Order an toàn (Fix lỗi NoneType)
+    """
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = 'attachment; filename="Purchase_Orders.xlsx"'
 
-    # Define the column headers
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Purchases"
+
+    # 1. Header
     columns = [
-        'ID', 'Item', 'Description', 'Vendor', 'Order Date',
-        'Delivery Date', 'Quantity', 'Delivery Status',
-        'Price per item (Ksh)', 'Total Value'
+        'ID', 
+        'Date', 
+        'Vendor',          # Cột gây lỗi
+        'Item Name', 
+        'Quantity', 
+        'Price (Ksh)', 
+        'Total Value', 
+        'Status',
+        'Delivery Date'
     ]
-    worksheet.append(columns)
+    ws.append(columns)
 
-    # Fetch purchases data
-    purchases = Purchase.objects.all()
+    # Format Header
+    header_font = openpyxl.styles.Font(bold=True)
+    for cell in ws[1]:
+        cell.font = header_font
 
-    for purchase in purchases:
-        # Convert timezone-aware datetime to naive datetime
-        delivery_tzinfo = purchase.delivery_date.tzinfo
-        order_tzinfo = purchase.order_date.tzinfo
+    # 2. Query dữ liệu
+    rows = Purchase.objects.all().select_related('vendor', 'item').order_by('-order_date')
 
-        if delivery_tzinfo or order_tzinfo is not None:
-            delivery_date = purchase.delivery_date.replace(tzinfo=None)
-            order_date = purchase.order_date.replace(tzinfo=None)
+    for p in rows:
+        # -- Xử lý Ngày tháng --
+        o_date = p.order_date.strftime('%Y-%m-%d %H:%M') if p.order_date else "-"
+        d_date = p.delivery_date.strftime('%Y-%m-%d') if p.delivery_date else "-"
+
+        # -- Xử lý Vendor (FIX LỖI NONE TYPE TẠI ĐÂY) --
+        # Kiểm tra: Nếu có vendor thì lấy tên, nếu không thì ghi 'N/A'
+        if p.vendor:
+            vendor_name = p.vendor.name
         else:
-            delivery_date = purchase.delivery_date
-            order_date = purchase.order_date
-        worksheet.append([
-            purchase.id,
-            purchase.item.name,
-            purchase.description,
-            purchase.vendor.name,
-            order_date,
-            delivery_date,
-            purchase.quantity,
-            purchase.get_delivery_status_display(),
-            purchase.price,
-            purchase.total_value
+            vendor_name = "N/A" 
+
+        # -- Xử lý Item --
+        item_name = p.item.name if p.item else "Unknown"
+
+        # -- Xử lý Status (Hiển thị chữ thay vì ký tự P/S) --
+        status_display = "Pending"
+        if p.delivery_status == 'S':
+            status_display = "Successful"
+
+        ws.append([
+            p.id,
+            o_date,
+            vendor_name,    # Biến đã được xử lý an toàn
+            item_name,
+            p.quantity,
+            p.price,
+            p.total_value,
+            status_display,
+            d_date
         ])
 
-    # Set up the response to send the file
-    response = HttpResponse(
-        content_type=(
-            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-        )
-    )
-    response['Content-Disposition'] = 'attachment; filename=purchases.xlsx'
-    workbook.save(response)
+    # 3. Auto-fit cột
+    for col in ws.columns:
+        max_length = 0
+        column = col[0].column_letter
+        for cell in col:
+            try:
+                if len(str(cell.value)) > max_length:
+                    max_length = len(str(cell.value))
+            except:
+                pass
+        adjusted_width = (max_length + 2)
+        ws.column_dimensions[column].width = adjusted_width
 
+    wb.save(response)
     return response
 
 

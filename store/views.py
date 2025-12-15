@@ -439,7 +439,7 @@ def export_products(request):
             cat_name,
             item.quantity,
             item.price,
-            exp_date,
+            # exp_date,
             ven_name
         ])
 
@@ -550,3 +550,99 @@ def get_item_details(request, item_id):
         return JsonResponse(data)
     except Item.DoesNotExist:
         return JsonResponse({'error': 'Item not found'}, status=404)
+    
+@login_required
+def export_deliveries(request):
+    """
+    Export danh sách Delivery chuẩn đẹp (xử lý cả Sale và Invoice)
+    """
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = 'attachment; filename="Deliveries_List.xlsx"'
+
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Deliveries"
+
+    # 1. Định nghĩa Header
+    columns = [
+        'ID', 
+        'Order Reference', # Tên đơn (Sale #.. hoặc Invoice #..)
+        'Customer Name', 
+        'Contact Number', 
+        'Address',         # Địa chỉ (đã xử lý logic)
+        'Delivery Date', 
+        'Status'
+    ]
+    ws.append(columns)
+
+    # Format Header in đậm
+    header_font = openpyxl.styles.Font(bold=True)
+    for cell in ws[1]:
+        cell.font = header_font
+
+    # 2. Query dữ liệu
+    # Dùng select_related để lấy hết thông tin liên quan trong 1 lần query
+    rows = Delivery.objects.all().select_related(
+        'sale', 'invoice', 
+        'sale__customer', 'invoice__customer'
+    ).order_by('-id')
+
+    for delivery in rows:
+        # --- A. Xác định nguồn đơn (Sale hay Invoice) và Khách hàng ---
+        order_ref = "-"
+        customer = None
+        
+        if delivery.sale:
+            order_ref = f"Sale #{delivery.sale.id}"
+            customer = delivery.sale.customer
+        elif delivery.invoice:
+            order_ref = f"Invoice #{delivery.invoice.id}"
+            customer = delivery.invoice.customer
+
+        # --- B. Lấy thông tin Khách hàng ---
+        cust_name = "Guest"
+        cust_phone = "-"
+        cust_address_db = "-" # Địa chỉ lưu trong bảng Customer
+
+        if customer:
+            cust_name = f"{customer.first_name} {customer.last_name}"
+            cust_phone = customer.phone if customer.phone else "-"
+            cust_address_db = customer.address if customer.address else "-"
+
+        # --- C. Xử lý Logic Địa chỉ (Ưu tiên Location riêng -> Địa chỉ khách) ---
+        final_address = cust_address_db
+        if delivery.location:
+            final_address = delivery.location
+        elif final_address == "-":
+            final_address = "Chưa có địa chỉ"
+
+        # --- D. Xử lý Ngày tháng & Trạng thái ---
+        date_str = delivery.date_created.strftime('%d/%m/%Y %H:%M') if delivery.date_created else "-"
+        status = "Delivered" if delivery.is_delivered else "Pending"
+
+        # --- E. Ghi dòng dữ liệu ---
+        ws.append([
+            delivery.id,
+            order_ref,
+            cust_name,
+            cust_phone,
+            final_address,
+            date_str,
+            status
+        ])
+
+    # 3. Auto-fit độ rộng cột
+    for col in ws.columns:
+        max_length = 0
+        column = col[0].column_letter
+        for cell in col:
+            try:
+                if len(str(cell.value)) > max_length:
+                    max_length = len(str(cell.value))
+            except:
+                pass
+        adjusted_width = (max_length + 2)
+        ws.column_dimensions[column].width = adjusted_width
+
+    wb.save(response)
+    return response

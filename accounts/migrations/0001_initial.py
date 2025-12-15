@@ -57,7 +57,7 @@ class Migration(migrations.Migration):
                 ('first_name', models.CharField(blank=True, max_length=30, verbose_name='First Name')),
                 ('last_name', models.CharField(blank=True, max_length=30, verbose_name='Last Name')),
                 ('status', models.CharField(choices=[('INA', 'Inactive'), ('A', 'Active'), ('OL', 'On leave')], default='INA', max_length=12, verbose_name='Status')),
-                ('role', models.CharField(blank=True, choices=[('AD', 'Admin'), ('MA', 'Manager'), ('ST', 'Staff')], max_length=12, null=True, verbose_name='Role')),
+                ('role', models.CharField(blank=True, choices=[('Admin', 'Admin'), ('Manager', 'Manager'), ('Staff', 'Staff')], max_length=12, null=True, verbose_name='Role')),
                 ('user', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL, verbose_name='User')),
             ],
             options={

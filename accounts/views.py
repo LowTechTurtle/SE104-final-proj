@@ -32,6 +32,9 @@ from .forms import (
 )
 from .tables import ProfileTable
 
+from .forms import ProfileUpdateForm 
+from django.contrib import messages
+from django.shortcuts import redirect
 
 def register(request):
     """
@@ -62,31 +65,30 @@ def profile(request):
 
 @login_required
 def profile_update(request):
-    """
-    Handle profile update.
-    If the request is POST, process the form data
-    to update user information and profile.
-    Redirect to the profile page on success.
-    For GET requests, render the update forms.
-    """
     if request.method == 'POST':
         u_form = UserUpdateForm(request.POST, instance=request.user)
+        # Truyền thêm user=request.user để Form biết ai đang sửa (để chạy logic phân quyền Role)
         p_form = ProfileUpdateForm(
             request.POST,
             request.FILES,
-            instance=request.user.profile
+            instance=request.user.profile,
+            user=request.user 
         )
         if u_form.is_valid() and p_form.is_valid():
             u_form.save()
             p_form.save()
-            return redirect('user-profile')
+            return redirect('user-profile') # Hãy chắc chắn tên URL này đúng trong urls.py
     else:
         u_form = UserUpdateForm(instance=request.user)
-        p_form = ProfileUpdateForm(instance=request.user.profile)
+        # Truyền thêm user=request.user cho GET request
+        p_form = ProfileUpdateForm(
+            instance=request.user.profile,
+            user=request.user
+        )
 
     return render(
         request,
-        'accounts/profile_update.html',
+        'accounts/profile_update.html', # Kiểm tra tên file HTML của bạn có đúng là cái này không
         {'u_form': u_form, 'p_form': p_form}
     )
 
@@ -132,12 +134,17 @@ class ProfileCreateView(LoginRequiredMixin, CreateView):
 class ProfileUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     """
     Update an existing profile.
-    Requires user to be logged in and have superuser status.
-    Redirects to the profile list upon successful update.
+    Permissions:
+    - Admin: Can edit everyone.
+    - Manager: Can edit Staff and other Managers, but NOT Admin.
+    - Staff: Cannot access.
     """
     model = Profile
     template_name = 'accounts/staffupdate.html'
-    fields = ['user', 'role', 'status']
+    
+    # --- QUAN TRỌNG: Dùng form custom thay vì khai báo fields ---
+    form_class = ProfileUpdateForm 
+    # -----------------------------------------------------------
 
     def get_success_url(self):
         """
@@ -145,11 +152,46 @@ class ProfileUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
         """
         return reverse('profile_list')
 
+    def get_form_kwargs(self):
+        """
+        Truyền user hiện tại vào Form để xử lý logic lọc Role
+        """
+        kwargs = super().get_form_kwargs()
+        kwargs['user'] = self.request.user
+        return kwargs
+
     def test_func(self):
         """
-        Check if the user is a superuser.
+        Kiểm tra quyền truy cập (Admin vs Manager)
         """
-        return self.request.user.is_superuser
+        current_user = self.request.user
+        profile_to_edit = self.get_object() # Người mà chúng ta đang định sửa
+
+        # 1. Nếu chưa có profile (lỗi hệ thống) -> Chặn
+        if not hasattr(current_user, 'profile'):
+            return False
+
+        # 2. Admin hoặc Superuser -> Được quyền sửa tất cả
+        if current_user.is_superuser or current_user.profile.role == 'Admin':
+            return True
+
+        # 3. Manager
+        if current_user.profile.role == 'Manager':
+            # Manager KHÔNG ĐƯỢC phép sửa role của Admin hoặc Superuser
+            if profile_to_edit.role == 'Admin' or profile_to_edit.user.is_superuser:
+                return False
+            # Còn lại (Sửa Staff hoặc Manager khác) -> OK
+            return True
+
+        # 4. Staff -> Không có quyền vào trang này
+        return False
+
+    def handle_no_permission(self):
+        """
+        Xử lý khi user cố truy cập mà không có quyền (trả về False ở test_func)
+        """
+        messages.error(self.request, "Bạn không có quyền chỉnh sửa nhân viên này!")
+        return redirect('profile_list')
 
 
 class ProfileDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):

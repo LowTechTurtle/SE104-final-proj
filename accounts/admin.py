@@ -5,7 +5,7 @@ from .models import Profile, Vendor
 @admin.register(Profile)
 class ProfileAdmin(admin.ModelAdmin):
     """Admin interface for the Profile model."""
-    list_display = ('user', 'telephone', 'email', 'role', 'status')
+    list_display = ('user', 'telephone', 'email', 'role')
 
 
 @admin.register(Vendor)

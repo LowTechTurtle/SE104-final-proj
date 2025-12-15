@@ -64,12 +64,12 @@
             <img class="rounded-circle img-fluid" id="sidebar-img" width="45" src="{{ request.user.profile.profile_picture.url }}" alt="Profile Picture" />
             <div class="ms-3">
                 <h5 class="fs-6 mb-0">
-                    {{ request.user.username }}{% if request.user.profile.role == 'AD' %} <i class="fa-solid fa-circle-check text-success"></i>{% endif %}
+                    {{ request.user.username }}{% if request.user.profile.role == 'Admin' %} <i class="fa-solid fa-circle-check text-success"></i>{% endif %}
                 </h5>
                 <span class="badge bg-success text-light">
-                    {% if request.user.profile.role == 'AD' %}
+                    {% if request.user.profile.role == 'Admin' %}
                         Admin
-                    {% elif request.user.profile.role == 'MA' %}
+                    {% elif request.user.profile.role == 'Manager' %}
                         Manager
                     {% else %}
                         Staff

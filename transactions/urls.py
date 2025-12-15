@@ -16,7 +16,7 @@ from .views import (
     SaleDeleteView,
 
     export_sales_to_excel,
-    export_purchases_to_excel
+    export_purchases
 )
 
 # URL patterns
@@ -51,8 +51,7 @@ urlpatterns = [
 
     # Sales and purchases export
     path('sales/export/', export_sales_to_excel, name='sales-export'),
-    path('purchases/export/', export_purchases_to_excel,
-         name='purchases-export'),
+    path('export-purchases/', export_purchases, name='export_purchases'),
 ]
 
 # Static media files configuration for development

@@ -21,9 +21,9 @@ STATUS_CHOICES = [
 # ]
 
 ROLE_CHOICES = [
-    ('AD', "Admin"),
-    ('MA', "Manager"),
-    ('ST', "Staff")
+    ('Admin', "Admin"),
+    ('Manager', "Manager"),
+    ('Staff', "Staff")
 ]
 
 
@@ -58,18 +58,13 @@ class Profile(models.Model):
     last_name = models.CharField(
         max_length=30, blank=True, verbose_name='Last Name'
     )
-    status = models.CharField(
-        choices=STATUS_CHOICES,
-        max_length=12,
-        default='INA',
-        verbose_name='Status'
-    )
     role = models.CharField(
         choices=ROLE_CHOICES,
         max_length=12,
         blank=True,
         null=True,
-        verbose_name='Role'
+        verbose_name='Role',
+        default='Staff'
     )
 
     @property
