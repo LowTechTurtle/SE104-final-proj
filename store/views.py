@@ -411,7 +411,7 @@ def export_products(request):
     ws.title = "Products"
 
     # 2. Tạo tiêu đề cột (Header)
-    columns = ['ID', 'Name', 'Category', 'Quantity', 'Price', 'Expiring Date', 'Vendor']
+    columns = ['ID', 'Name', 'Category', 'Quantity', 'Price', 'Vendor']
     ws.append(columns)
 
     # In đậm tiêu đề

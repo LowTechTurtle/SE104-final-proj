@@ -143,7 +143,7 @@ class SaleListView(LoginRequiredMixin, ListView):
     context_object_name = "sales"
     paginate_by = 10
 
-    ordering = ['id']
+    ordering = ['-date_added']
 
 
 class SaleDetailView(LoginRequiredMixin, DetailView):

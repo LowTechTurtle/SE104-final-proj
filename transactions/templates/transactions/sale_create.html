@@ -179,8 +179,9 @@
 
             // Update the sale subtotal, grand total, and tax amount
             this.products.sub_total = roundTo(sub_total, 2);
-            this.products.grand_total = roundTo(this.products.sub_total, 2);
             this.products.tax_amount = roundTo(this.products.sub_total * (tax_percentage / 100), 2);
+            this.products.grand_total = roundTo(this.products.sub_total + this.products.tax_amount, 2);
+
 
             $('input[name="sub_total"]').val(this.products.sub_total);
             $('input[name="tax_amount"]').val(this.products.tax_amount);
@@ -417,8 +418,10 @@
             if(!customerVal) customerVal = ""; // Gửi chuỗi rỗng lên server
 
             var formData = {
-                customer: customerVal, 
+                customer: customerVal,
                 sub_total: $('input[name="sub_total"]').val(),
+                tax_percentage: $('input[name="tax_percentage"]').val(),
+                tax_amount: $('input[name="tax_amount"]').val(),
                 grand_total: grandTotal,
                 amount_paid: amountPaid,
                 amount_change: amountChange,

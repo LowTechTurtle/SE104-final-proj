@@ -39,7 +39,6 @@
                     <th scope="col">Category <i class="fa-solid fa-sort"></i></th>
                     <th scope="col">Quantity <i class="fa-solid fa-sort"></i></th>
                     <th scope="col">Price <i class="fa-solid fa-sort"></i></th>
-                    <th scope="col">Expiring Date <i class="fa-solid fa-sort"></i></th>
                     <th scope="col">Vendor <i class="fa-solid fa-sort"></i></th>
                     <th scope="col">Action</th>
                 </tr>
@@ -52,7 +51,6 @@
                     <td>{{ item.category.name }}</td>
                     <td>{{ item.quantity }}</td>
                     <td>{{ item.price }}</td>
-                    <td>{{ item.expiring_date }}</td>
                     <td>{{ item.vendor }}</td>
                     <td>
                         <a class="btn btn-outline-info btn-sm" href="{% url 'product-update' item.slug %}">
