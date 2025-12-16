@@ -1,6 +1,6 @@
 # Django core imports
 from django.urls import reverse
-
+from django.contrib.auth.mixins import PermissionRequiredMixin
 # Class-based views
 from django.views.generic import (
     CreateView,
@@ -35,7 +35,7 @@ class BillListView(LoginRequiredMixin, ExportMixin, SingleTableView):
     SingleTableView.table_pagination = False
 
 
-class BillUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+class BillUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
     """View for updating an existing bill."""
     model = Bill
     template_name = 'bills/billupdate.html'
@@ -43,24 +43,18 @@ class BillUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
         'payment_details',
         'status'
     ]
+    permission_required = "bills.change_bill"
 
     def test_func(self):
         """Check if the user has the required permissions."""
         return self.request.user.profile in Profile.objects.all()
 
-    def get_success_url(self):
-        """Redirect to the list of bills after a successful update."""
-        return reverse('bill_list')
 
-
-class BillDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
+class BillDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
     """View for deleting a bill."""
     model = Bill
     template_name = 'bills/billdelete.html'
-
-    def test_func(self):
-        """Check if the user is a superuser."""
-        return self.request.user.is_superuser
+    permission_required = "bills.delete_bill"
 
     def get_success_url(self):
         """Redirect to the list of bills after successful deletion."""

@@ -4,7 +4,7 @@ from django.http import JsonResponse
 from django.urls import reverse_lazy, reverse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
-
+from django.contrib.auth.mixins import PermissionRequiredMixin
 # Authentication and permissions
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
@@ -194,7 +194,7 @@ class ProfileUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
         return redirect('profile_list')
 
 
-class ProfileDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
+class ProfileDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
     """
     Delete an existing profile.
     Requires user to be logged in and have superuser status.
@@ -202,18 +202,13 @@ class ProfileDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     """
     model = Profile
     template_name = 'accounts/staffdelete.html'
+    permission_required = "accounts.delete_profile"
 
     def get_success_url(self):
         """
         Return the URL to redirect to after successfully deleting a profile.
         """
         return reverse('profile_list')
-
-    def test_func(self):
-        """
-        Check if the user is a superuser.
-        """
-        return self.request.user.is_superuser
 
 
 class CustomerListView(LoginRequiredMixin, ListView):
@@ -255,7 +250,7 @@ class CustomerUpdateView(LoginRequiredMixin, UpdateView):
     success_url = reverse_lazy('customer_list')
 
 
-class CustomerDeleteView(LoginRequiredMixin, DeleteView):
+class CustomerDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
     """
     View for deleting a customer.
 
@@ -265,6 +260,7 @@ class CustomerDeleteView(LoginRequiredMixin, DeleteView):
     """
     model = Customer
     template_name = 'accounts/customer_confirm_delete.html'
+    permission_required = "accounts.delete_customer"
     success_url = reverse_lazy('customer_list')
 
 
@@ -319,14 +315,16 @@ class VendorCreateView(LoginRequiredMixin, CreateView):
     success_url = reverse_lazy('vendor-list')
 
 
-class VendorUpdateView(LoginRequiredMixin, UpdateView):
+class VendorUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
     model = Vendor
     form_class = VendorForm
     template_name = 'accounts/vendor_form.html'
     success_url = reverse_lazy('vendor-list')
+    permission_required = "accounts.change_vendor"
 
 
-class VendorDeleteView(LoginRequiredMixin, DeleteView):
+class VendorDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
     model = Vendor
     template_name = 'accounts/vendor_confirm_delete.html'
     success_url = reverse_lazy('vendor-list')
+    permission_required = "accounts.delete_vendor"

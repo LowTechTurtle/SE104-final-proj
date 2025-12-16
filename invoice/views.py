@@ -8,6 +8,7 @@ from django.contrib.auth.decorators import login_required # <--- THÊM MỚI
 
 # Authentication and permissions
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.contrib.auth.mixins import PermissionRequiredMixin
 
 # Class-based views
 from django.views.generic import (
@@ -80,13 +81,14 @@ class InvoiceCreateView(LoginRequiredMixin, CreateView):
         return response
 
 
-class InvoiceUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+class InvoiceUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
     """
     View for updating an existing invoice.
     """
     model = Invoice
     template_name = 'invoice/invoiceupdate.html'
     form_class = InvoiceForm
+    permission_required = "invoice.change_invoice"
 
     def get_success_url(self):
         return reverse('invoicelist')
@@ -95,13 +97,14 @@ class InvoiceUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
         return self.request.user.is_superuser
 
 
-class InvoiceDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
+class InvoiceDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
     """
     View for deleting an invoice.
     """
     model = Invoice
     template_name = 'invoice/invoicedelete.html'
     success_url = '/products'
+    permission_required = "invoice.delete_invoice"
 
     def get_success_url(self):
         return reverse('invoicelist')

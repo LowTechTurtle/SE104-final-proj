@@ -25,7 +25,7 @@ from django.db.models import Q, Count, Sum
 # Authentication and permissions
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-
+from django.contrib.auth.mixins import PermissionRequiredMixin
 # Class-based views
 from django.views.generic import (
     DetailView, CreateView, UpdateView, DeleteView, ListView
@@ -179,7 +179,7 @@ class ProductCreateView(LoginRequiredMixin, CreateView):
             return True
 
 
-class ProductUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+class ProductUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
     """
     View class to update product information.
 
@@ -194,6 +194,8 @@ class ProductUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     template_name = "store/productupdate.html"
     form_class = ItemForm
     success_url = "/products"
+    
+    permission_required = "store.change_item"
 
     def test_func(self):
         if self.request.user.is_superuser:
@@ -202,7 +204,7 @@ class ProductUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
             return False
 
 
-class ProductDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
+class ProductDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
     """
     View class to delete a product.
 
@@ -215,6 +217,7 @@ class ProductDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     model = Item
     template_name = "store/productdelete.html"
     success_url = "/products"
+    permission_required = "store.delete_item"
 
     def test_func(self):
         if self.request.user.is_superuser:
@@ -297,7 +300,7 @@ class DeliveryCreateView(LoginRequiredMixin, CreateView):
     success_url = "/deliveries"
 
 
-class DeliveryUpdateView(LoginRequiredMixin, UpdateView):
+class DeliveryUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
     """
     View class to update delivery information.
 
@@ -312,9 +315,10 @@ class DeliveryUpdateView(LoginRequiredMixin, UpdateView):
     form_class = DeliveryForm
     template_name = "store/delivery_form.html"
     success_url = "/deliveries"
+    permission_required = "store.change_delivery"
 
 
-class DeliveryDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
+class DeliveryDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
     """
     View class to delete a delivery.
 
@@ -327,7 +331,7 @@ class DeliveryDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     model = Delivery
     template_name = "store/productdelete.html"
     success_url = "/deliveries"
-
+    permission_required = "store.delete_delivery"
     def test_func(self):
         if self.request.user.is_superuser:
             return True
@@ -360,22 +364,24 @@ class CategoryCreateView(LoginRequiredMixin, CreateView):
         return reverse_lazy('category-detail', kwargs={'pk': self.object.pk})
 
 
-class CategoryUpdateView(LoginRequiredMixin, UpdateView):
+class CategoryUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
     model = Category
     template_name = 'store/category_form.html'
     form_class = CategoryForm
     login_url = 'login'
+    permission_required = "store.change_category"
 
     def get_success_url(self):
         return reverse_lazy('category-detail', kwargs={'pk': self.object.pk})
 
 
-class CategoryDeleteView(LoginRequiredMixin, DeleteView):
+class CategoryDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
     model = Category
     template_name = 'store/category_confirm_delete.html'
     context_object_name = 'category'
     success_url = reverse_lazy('category-list')
     login_url = 'login'
+    permission_required = "store.delete_category"
 
 
 def is_ajax(request):

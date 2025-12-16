@@ -14,6 +14,7 @@ from django.views.generic.edit import CreateView, UpdateView, DeleteView
 
 # Authentication and permissions
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.contrib.auth.mixins import PermissionRequiredMixin
 
 # Third-party packages
 from openpyxl import Workbook
@@ -312,26 +313,20 @@ def SaleCreateView(request):
 
     return render(request, "transactions/sale_create.html", context=context)
 
-class SaleDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
+class SaleDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
     """
     View to delete a sale.
     """
 
     model = Sale
     template_name = "transactions/saledelete.html"
+    permission_required = "transactions.delete_sale"
 
     def get_success_url(self):
         """
         Redirect to the sales list after successful deletion.
         """
         return reverse("saleslist")
-
-    def test_func(self):
-        """
-        Allow deletion only for superusers.
-        """
-        return self.request.user.is_superuser
-
 
 class PurchaseListView(LoginRequiredMixin, ListView):
     """
@@ -369,7 +364,7 @@ class PurchaseCreateView(LoginRequiredMixin, CreateView):
         return reverse("purchaseslist")
 
 
-class PurchaseUpdateView(LoginRequiredMixin, UpdateView):
+class PurchaseUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
     """
     View to update an existing purchase.
     """
@@ -377,6 +372,7 @@ class PurchaseUpdateView(LoginRequiredMixin, UpdateView):
     model = Purchase
     form_class = PurchaseForm
     template_name = "transactions/purchases_form.html"
+    permission_required = "transactions.change_purchase"
 
     def get_success_url(self):
         """
@@ -385,22 +381,18 @@ class PurchaseUpdateView(LoginRequiredMixin, UpdateView):
         return reverse("purchaseslist")
 
 
-class PurchaseDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
+class PurchaseDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
     """
     View to delete a purchase.
     """
 
     model = Purchase
     template_name = "transactions/purchasedelete.html"
+    permission_required = "transactions.delete_purchase"
+
 
     def get_success_url(self):
         """
         Redirect to the purchases list after successful deletion.
         """
         return reverse("purchaseslist")
-
-    def test_func(self):
-        """
-        Allow deletion only for superusers.
-        """
-        return self.request.user.is_superuser

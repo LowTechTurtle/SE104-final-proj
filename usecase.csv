@@ -18,8 +18,8 @@ No.,Use Case ID,Use Case Name,Description,Actors
 17,UC02-13,Edit User,"Edit a user in the system (e.g., reset username, password, status) ",Admin
 18,UC03-1,Add Vendor,"Add supplier information (e.g., supplier name, phone, address, etc.) ","Admin, Manager"
 19,UC03-2,View Vendor,"View supplier information (e.g., supplier name, phone, address, etc.) ","Admin, Manager, Staff"
-20,UC03-3,Delete Vendor,"Delete supplier information (e.g., supplier name, phone, address, etc.) ","Admin, Manager"
-21,UC03-4,Edit Vendor Info,"Edit supplier information (e.g., supplier name, phone, address, etc.) ","Admin, Manager"
+20,UC03-3,Delete Vendor,"Delete supplier ","Admin, Manager"
+21,UC03-4,Update Vendor Info,"Update supplier ","Admin, Manager"
 22,UC04-1,Add Permission,Add system access rights for a user,Admin
 23,UC04-2,View Permission,View system access rights of a user,Admin
 24,UC04-3,Edit Permission,Change system access rights for a user,Admin
