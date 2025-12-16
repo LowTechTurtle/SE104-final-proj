@@ -45,10 +45,9 @@ class BillUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
     ]
     permission_required = "bills.change_bill"
 
-    def test_func(self):
-        """Check if the user has the required permissions."""
-        return self.request.user.profile in Profile.objects.all()
-
+    def get_success_url(self):
+        """Redirect to the list of bills after a successful update."""
+        return reverse('bill_list')
 
 class BillDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
     """View for deleting a bill."""
