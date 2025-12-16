@@ -36,7 +36,7 @@ No.,Use Case ID,Use Case Name,Description,Actors
 35,UC07-4,Delete Product Category,Delete a category of goods,"Admin, Manager"
 36,UC07-5,Add New Delivery,"Add information for a delivery package (delivery address, phone, delivery date, etc.) ","Admin, Manager, Staff"
 37,UC08-1,View Delivery Info,View information of a delivered package,"Admin, Manager, Staff"
-38,UC08-2,Edit New Delivery Info,"Edit information (address, phone, etc.) of a delivered package ","Admin, Manager, Staff"
+38,UC08-2,Edit Delivery Info,"Change information of a package ","Admin, Manager, Staff"
 39,UC08-3,Delete Delivery,Delete a package,"Admin, Manager"
 40,UC09-1,Add Item,"Add product to the warehouse (price, quantity, etc.) ","Admin, Manager"
 41,UC09-2,View Item,View details about a specific product in the warehouse,"Admin, Manager, Staff"
