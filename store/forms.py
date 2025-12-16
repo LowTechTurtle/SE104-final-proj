@@ -2,6 +2,7 @@ from django import forms
 from .models import Item, Category, Delivery
 
 from transactions.models import Sale
+from invoice.models import Invoice # <--- 1. Import Invoice
 
 class ItemForm(forms.ModelForm):
     """
@@ -57,28 +58,37 @@ class CategoryForm(forms.ModelForm):
 
 
 class DeliveryForm(forms.ModelForm):
-    # Tạo dropdown chọn đơn hàng (Sale)
-    sale = forms.ModelChoiceField(
-        queryset=Sale.objects.all().order_by('-id'), # Đơn mới nhất lên đầu
+    # Chỉ còn lại dropdown Invoice
+    invoice = forms.ModelChoiceField(
+        queryset=Invoice.objects.all().order_by('-id'),
         widget=forms.Select(attrs={
-            'class': 'form-control select2', # Thêm class select2 để tí nữa dùng JS
+            'class': 'form-control select2',
             'style': 'width: 100%;'
         }),
-        label="Select Sale Order"
+        label="Select Invoice",
+        required=True # Bắt buộc phải chọn
     )
 
     class Meta:
         model = Delivery
-        # Chỉ lấy 3 trường cần thiết
-        fields = ['sale', 'location', 'is_delivered']
+        fields = ['invoice', 'location', 'is_delivered'] # Bỏ sale ra khỏi list
         
         widgets = {
             'location': forms.TextInput(attrs={
                 'class': 'form-control', 
-                'placeholder': 'Leave empty to use Customer Address' # Gợi ý người dùng
+                'placeholder': 'Leave empty to use Customer Address'
             }),
             'is_delivered': forms.CheckboxInput(attrs={
                 'class': 'form-check-input',
-                'style': 'width: 20px; height: 20px;' # Cho nút check to ra tí cho dễ bấm
+                'style': 'width: 20px; height: 20px;'
             }),
         }
+
+    def __init__(self, *args, **kwargs):
+        super(DeliveryForm, self).__init__(*args, **kwargs)
+        
+        # Nếu đang Update: Khóa trường Invoice lại không cho đổi
+        if self.instance.pk:
+            self.fields['invoice'].disabled = True
+            self.fields['invoice'].widget.attrs['readonly'] = True
+            self.fields['invoice'].widget.attrs['class'] += ' bg-light'

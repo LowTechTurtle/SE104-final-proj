@@ -45,84 +45,56 @@
             <tbody>
                 {% for delivery in deliveries %}
                 <tr>
-                    <!-- 1. ID Giao hàng -->
                     <th scope="row">{{ delivery.id }}</th>
                     
-                    <!-- 2. Tên đơn hàng (Phân biệt Sale hay Invoice) -->
+                    <!-- Cột Tên đơn -->
                     <td>
-                        {% if delivery.sale %}
-                            <span class="badge bg-primary">Sale #{{ delivery.sale.id }}</span>
-                        {% elif delivery.invoice %}
-                            <span class="badge bg-warning text-dark">Invoice #{{ delivery.invoice.id }}</span>
-                        {% else %}
-                            <span class="text-muted">-</span>
-                        {% endif %}
+                        <span class="badge bg-warning text-dark">Invoice #{{ delivery.invoice.id }}</span>
                     </td>
                     
-                    <!-- 3. Tên Khách hàng -->
+                    <!-- Cột Khách hàng -->
                     <td>
-                        {% if delivery.sale and delivery.sale.customer %}
-                            {{ delivery.sale.customer.first_name }} {{ delivery.sale.customer.last_name }}
-                        {% elif delivery.invoice and delivery.invoice.customer %}
+                        {% if delivery.invoice.customer %}
                             {{ delivery.invoice.customer.first_name }} {{ delivery.invoice.customer.last_name }}
                         {% else %}
-                            <span class="text-muted">Guest</span>
+                            <span class="text-danger">Guest</span>
                         {% endif %}
                     </td>
                     
-                    <!-- 4. Số điện thoại -->
+                    <!-- Cột SĐT -->
                     <td>
-                        {% if delivery.sale and delivery.sale.customer %}
-                            {{ delivery.sale.customer.phone }}
-                        {% elif delivery.invoice and delivery.invoice.customer %}
+                        {% if delivery.invoice.customer %}
                             {{ delivery.invoice.customer.phone }}
                         {% else %}
                             -
                         {% endif %}
                     </td>
                     
-                    <!-- 5. Địa chỉ (QUAN TRỌNG NHẤT) -->
+                    <!-- Cột Địa chỉ -->
                     <td>
                         {% if delivery.location %}
-                            <!-- Ưu tiên 1: Địa chỉ nhập riêng trong Delivery -->
                             {{ delivery.location }}
-                        {% elif delivery.sale and delivery.sale.customer.address %}
-                            <!-- Ưu tiên 2: Địa chỉ từ Sale -->
-                            {{ delivery.sale.customer.address }}
-                        {% elif delivery.invoice and delivery.invoice.customer.address %}
-                            <!-- Ưu tiên 3: Địa chỉ từ Invoice -->
+                        {% elif delivery.invoice.customer.address %}
                             {{ delivery.invoice.customer.address }}
                         {% else %}
                             <span class="text-danger">Chưa có địa chỉ</span>
                         {% endif %}
                     </td>
                     
-                    <!-- 6. Ngày tạo -->
-                    <td>
-                        {% if delivery.date_created %}
-                            {{ delivery.date_created|date:"d/m/Y H:i" }}
-                        {% else %}
-                            -
-                        {% endif %}
-                    </td>
+                    <!-- Các cột Ngày, Status, Action giữ nguyên -->
+                    <td>{{ delivery.date_created|date:"d/m/Y H:i" }}</td>
                     
-                    <!-- 7. Trạng thái -->
                     <td>
                         {% if delivery.is_delivered %}
-                        <span class="badge bg-success text-white">Delivered</span>
+                            <span class="badge bg-success text-white">Delivered</span>
                         {% else %}
-                        <span class="badge bg-danger text-white">Pending</span>
+                            <span class="badge bg-danger text-white">Pending</span>
                         {% endif %}
                     </td>
                     
-                    <!-- 8. Hành động -->
                     <td>
-                        <a class="btn btn-outline-info btn-sm" href="{% url 'delivery-update' delivery.pk %}">
-                            <i class="fa-solid fa-pen"></i> Edit
-                        </a>
-                        <a class="btn btn-outline-danger btn-sm float-end" href="{% url 'delivery-delete' delivery.pk %}">
-                            <i class="fa-solid fa-trash"></i> Delete
-                        </a>
+                        <a class="btn btn-outline-info btn-sm" href="{% url 'delivery-update' delivery.pk %}">Edit</a>
+                        <a class="btn btn-outline-danger btn-sm float-end" href="{% url 'delivery-delete' delivery.pk %}">Delete</a>
                     </td>
                 </tr>
                 {% endfor %}

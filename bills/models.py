@@ -20,4 +20,7 @@ class Bill(models.Model):
     )
 
     def __str__(self):
-        return self.institution_name
+        # Lấy tên Vendor thông qua Purchase
+        if self.purchase and self.purchase.vendor:
+            return f"Bill from {self.purchase.vendor.name} (#{self.id})"
+        return f"Bill #{self.id}"

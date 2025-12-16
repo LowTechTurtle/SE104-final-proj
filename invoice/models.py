@@ -57,7 +57,11 @@ class Invoice(models.Model):
         return super().save(*args, **kwargs)
 
     def __str__(self):
-        """
-        Return the invoice's slug.
-        """
-        return self.slug
+        # Lấy tên khách hàng an toàn
+        if self.customer:
+            cust_name = f"{self.customer.first_name} {self.customer.last_name}"
+        else:
+            cust_name = "Guest"
+            
+        # Trả về chuỗi định dạng chuẩn: "Invoice #ID - Tên khách"
+        return f"#{self.id} - {cust_name}"

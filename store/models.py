@@ -52,8 +52,8 @@ class Item(models.Model):
         String representation of the item.
         """
         return (
-            f"{self.name} - Category: {self.category}, "
-            f"Quantity: {self.quantity}"
+            f"{self.name} - {self.category.name} - "
+            f"{self.quantity}"
         )
 
     def get_absolute_url(self):
@@ -76,38 +76,20 @@ class Item(models.Model):
         verbose_name_plural = 'Items'
 
 class Delivery(models.Model):
-    """
-    Represents a delivery of an item to a customer.
-    """
-    # Thay vì dùng class Sale trực tiếp, ta dùng chuỗi 'transactions.Sale'
-    # Django sẽ tự tìm đến app transactions và lấy model Sale cho bạn
-    sale = models.ForeignKey(
-        'transactions.Sale', 
-        on_delete=models.SET_NULL, 
-        null=True, 
-        blank=True,
-        related_name='deliveries'
-    )
+    # --- ĐÃ XÓA DÒNG SALE ---
     
+    # Invoice bây giờ là nguồn duy nhất
     invoice = models.ForeignKey(
         'invoice.Invoice', 
-        on_delete=models.SET_NULL, 
-        null=True, 
-        blank=True,
+        on_delete=models.CASCADE, # Xóa hóa đơn thì xóa luôn giao hàng
+        null=False, # Bắt buộc phải có
+        blank=False,
         related_name='deliveries'
     )
-
-    location = models.CharField(max_length=255, blank=True, null=True)
-    is_delivered = models.BooleanField(
-        default=False, verbose_name='Is Delivered'
-    )
     
+    location = models.CharField(max_length=255, blank=True, null=True)
+    is_delivered = models.BooleanField(default=False, verbose_name='Is Delivered')
     date_created = models.DateTimeField(auto_now_add=True, null=True)
 
     def __str__(self):
-        # Sửa lại hiển thị cho đầy đủ
-        if self.sale:
-            return f"Delivery for Sale #{self.sale.id}"
-        elif self.invoice:
-            return f"Delivery for Invoice #{self.invoice.id}"
-        return "Empty Delivery"
+        return f"Delivery for Invoice #{self.invoice.id}"

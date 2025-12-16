@@ -18,49 +18,48 @@
             <form method="post" action="{% if form.instance.pk %}{% url 'delivery-update' form.instance.pk %}{% else %}{% url 'delivery-create' %}{% endif %}">
                 {% csrf_token %}
                 
-                <!-- Dòng 1: Chọn Đơn hàng (Sale) -->
+                <!-- Chỉ hiển thị chọn Invoice -->
                 <div class="row mb-4">
                     <div class="col-md-12">
                         <div class="form-group">
-                            <label for="{{ form.sale.id_for_label }}" class="form-label fw-bold">Sale Order</label>
-                            {{ form.sale }}
-                            {% if form.sale.errors %}
-                                <div class="text-danger mt-1">{{ form.sale.errors }}</div>
+                            <label class="form-label fw-bold">Invoice Order</label>
+                            {{ form.invoice }}
+                            {% if form.invoice.errors %}
+                                <div class="text-danger mt-1">{{ form.invoice.errors }}</div>
                             {% endif %}
-                            <small class="text-muted">Select a sale to attach this delivery.</small>
                         </div>
                     </div>
                 </div>
+                    
+                    <!-- Hiển thị lỗi chung nếu có -->
+                    {% if form.errors %}
+                        <div class="col-12 text-danger mt-2">
+                            {{ form.errors }}
+                        </div>
+                    {% endif %}
+                </div>
 
-                <!-- Dòng 2: Địa chỉ & Trạng thái -->
+                <!-- Dòng 2: Địa chỉ & Trạng thái (Giữ nguyên) -->
                 <div class="row mb-4">
-                    <!-- Địa chỉ -->
                     <div class="col-md-8">
                         <div class="form-group">
-                            <label for="{{ form.location.id_for_label }}" class="form-label fw-bold">Delivery Location</label>
+                            <label class="form-label fw-bold">Delivery Location</label>
                             {{ form.location }}
-                            {% if form.location.errors %}
-                                <div class="text-danger mt-1">{{ form.location.errors }}</div>
-                            {% endif %}
                             <small class="text-muted">If empty, the customer's default address will be used.</small>
                         </div>
                     </div>
-
-                    <!-- Trạng thái -->
                     <div class="col-md-4">
                         <div class="form-group">
                             <label class="form-label fw-bold d-block">Status</label>
                             <div class="d-flex align-items-center mt-2">
                                 {{ form.is_delivered }}
-                                <label class="form-check-label ms-2" for="{{ form.is_delivered.id_for_label }}">
-                                    Is Delivered?
-                                </label>
+                                <label class="form-check-label ms-2">Is Delivered?</label>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Nút bấm -->
+                <!-- Buttons -->
                 <div class="d-flex justify-content-end gap-2">
                     <a href="{% url 'deliveries' %}" class="btn btn-secondary">Cancel</a>
                     <button type="submit" class="btn btn-success">
@@ -80,12 +79,21 @@
 
 <script>
     $(document).ready(function() {
-        // Kích hoạt Select2 cho ô chọn Sale
+        // Kích hoạt Select2 cho tất cả các ô có class 'select2'
         $('.select2').select2({
             theme: 'bootstrap4',
-            placeholder: "Search by Sale ID...",
+            placeholder: "Search ID...",
             allowClear: true,
             width: '100%'
+        });
+
+        // --- Logic phụ (Optional): Nếu chọn Sale thì clear Invoice và ngược lại ---
+        $('#id_sale').on('select2:select', function (e) {
+            $('#id_invoice').val(null).trigger('change'); // Xóa chọn Invoice
+        });
+
+        $('#id_invoice').on('select2:select', function (e) {
+            $('#id_sale').val(null).trigger('change'); // Xóa chọn Sale
         });
     });
 </script>
