@@ -160,8 +160,8 @@ class Purchase(models.Model):
         self.item.save()
 
     def __str__(self):
-        vendor_name = self.vendor.name if self.vendor else "Unknown"
-        return f"{self.item.name} ({self.quantity}) - {vendor_name}"
+        vendor_name = self.vendor.name if self.vendor else ""
+        return f"{self.item.name} ({self.quantity}) {vendor_name}"
 
     class Meta:
         ordering = ["order_date"]

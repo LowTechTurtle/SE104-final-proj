@@ -1,5 +1,5 @@
 # Standard library imports
-import openpyxl # <--- THÊM MỚI
+import openpyxl
 
 # Django core imports
 from django.urls import reverse
@@ -9,6 +9,10 @@ from django.contrib.auth.decorators import login_required # <--- THÊM MỚI
 # Authentication and permissions
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.auth.mixins import PermissionRequiredMixin
+from django.contrib import messages
+from django.db import transaction
+from django.core.exceptions import ValidationError
+from django.http import HttpResponseRedirect
 
 # Class-based views
 from django.views.generic import (
@@ -64,21 +68,32 @@ class InvoiceCreateView(LoginRequiredMixin, CreateView):
         return reverse('invoicelist')
 
     def form_valid(self, form):
-        # 1. Lưu Invoice trước
-        response = super().form_valid(form)
-        
-        # 2. Lấy object Invoice vừa tạo ra
-        created_invoice = self.object
-        
-        # 3. Tự động tạo một Delivery gắn với Invoice này
-        Delivery.objects.create(
-            invoice=created_invoice,
-            # Lấy địa chỉ khách hàng làm địa chỉ giao hàng mặc định
-            location=created_invoice.customer.address if created_invoice.customer else "Tại cửa hàng",
-            is_delivered=False 
-        )
-        
-        return response
+        try:
+            # Dùng transaction.atomic để đảm bảo: Nếu lỗi thì không lưu gì cả
+            with transaction.atomic():
+                # 1. Cố gắng lưu Invoice (Lúc này Signal kiểm tra kho sẽ chạy)
+                # Nếu không đủ hàng, Signal sẽ "ném" ra ValidationError -> Nhảy xuống except
+                self.object = form.save()
+                
+                # 2. Tạo Delivery tự động (Code cũ của chúng ta)
+                Delivery.objects.create(
+                    invoice=self.object,
+                    location=self.object.customer.address if self.object.customer else "Tại cửa hàng",
+                    is_delivered=False
+                )
+
+            # 3. Nếu chạy êm đẹp đến đây -> Gửi thông báo Thành công
+            messages.success(self.request, "Invoice has been created successfully!")
+            return super().form_valid(form)
+
+        except ValidationError as e:
+            # 4. Nếu bắt được lỗi (từ Signal) -> Gửi thông báo Lỗi
+            # Lấy nội dung lỗi (bỏ cái dấu ngoặc vuông [] đi cho đẹp)
+            error_message = e.messages[0] if hasattr(e, 'messages') else str(e)
+            messages.error(self.request, error_message)
+            
+            # Load lại trang hiện tại (không chuyển trang) để hiện lỗi
+            return self.render_to_response(self.get_context_data(form=form))
 
 
 class InvoiceUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):

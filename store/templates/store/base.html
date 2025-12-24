@@ -59,6 +59,28 @@
 
         <!-- Core plugin JavaScript-->
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+        
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                {% if messages %}
+                    {% for message in messages %}
+                        Swal.fire({
+                            // Nếu tag là 'error' thì icon là 'error', còn lại là 'success'
+                            icon: "{{ message.tags|default:'success' }}".includes('error') ? 'error' : 'success',
+                            
+                            // Tiêu đề viết hoa chữ cái đầu
+                            title: "{{ message.tags|capfirst }}",
+                            
+                            text: "{{ message }}",
+                            
+                            // Màu nút bấm: Đỏ nếu lỗi, Xanh nếu thành công
+                            confirmButtonColor: "{{ message.tags }}".includes('error') ? '#dc3545' : '#28a745',
+                        });
+                    {% endfor %}
+                {% endif %}
+            });
+        </script>
 
         {% block javascripts %}{% endblock javascripts %}
       </body>

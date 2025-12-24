@@ -76,9 +76,6 @@ class Item(models.Model):
         verbose_name_plural = 'Items'
 
 class Delivery(models.Model):
-    # --- ĐÃ XÓA DÒNG SALE ---
-    
-    # Invoice bây giờ là nguồn duy nhất
     invoice = models.ForeignKey(
         'invoice.Invoice', 
         on_delete=models.CASCADE, # Xóa hóa đơn thì xóa luôn giao hàng

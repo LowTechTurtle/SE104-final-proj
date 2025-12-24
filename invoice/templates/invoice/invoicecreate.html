@@ -109,4 +109,32 @@
         });
     });
 </script>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<!-- Import jQuery và Select2 (Code cũ của bạn, giữ nguyên) -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+<script>
+    $(document).ready(function() {
+        // --- 1. Code Select2 và Auto Price cũ (Giữ nguyên) ---
+        $('.select2').select2({ theme: 'bootstrap4', placeholder: "Search...", allowClear: true, width: '100%' });
+        
+        $('#id_item').on('change', function() {
+            var itemId = $(this).val();
+            if (itemId) {
+                var url = '/store/get-item-details/' + itemId + '/';
+                $.ajax({
+                    url: url,
+                    type: 'GET',
+                    success: function(response) {
+                        $('input[name="price_per_item"]').val(response.price);
+                    },
+                    error: function(err) { console.log(err); }
+                });
+            }
+        });
+    });
+</script>
 {% endblock javascripts %}
